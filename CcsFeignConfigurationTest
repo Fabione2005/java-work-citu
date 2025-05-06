@@ -19,7 +19,7 @@ class CcsFeignConfigurationTest {
 
     @Test
     void decodeWithValidJson_shouldReturnExceptionWithBodyStatusCode() {
-        // Given a JSON payload that contains the STATUS_CODE key
+        // Given a JSON payload containing the STATUS_CODE key
         String expectedStatus = "USER_LOCKED";
         String json = "{\"" + BiometricsConstants.STATUS_CODE + "\":\"" + expectedStatus + "\"}";
 
@@ -35,14 +35,14 @@ class CcsFeignConfigurationTest {
                 null
             ))
             .headers(Collections.emptyMap())
-            .body(json.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8)
+            .body(json, StandardCharsets.UTF_8)   // <-- use String + Charset
             .build();
 
         // When decode() is invoked
         Exception ex = decoder.decode("someMethod", response);
 
         // Then we get a BiometricsAPIException with the status code from the body
-        assertNotNull(ex,             "Exception should not be null");
+        assertNotNull(ex, "Exception should not be null");
         assertTrue(ex instanceof BiometricsAPIException,
                    "Exception type should be BiometricsAPIException");
 
@@ -72,14 +72,14 @@ class CcsFeignConfigurationTest {
                 null
             ))
             .headers(Collections.emptyMap())
-            .body(invalidJson.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8)
+            .body(invalidJson, StandardCharsets.UTF_8)  // <-- same overload
             .build();
 
         // When decode() is invoked
         Exception ex = decoder.decode("otherMethod", response);
 
         // Then we get a BiometricsAPIException with the default enum message
-        assertNotNull(ex,             "Exception should not be null");
+        assertNotNull(ex, "Exception should not be null");
         assertTrue(ex instanceof BiometricsAPIException,
                    "Exception type should be BiometricsAPIException");
 
