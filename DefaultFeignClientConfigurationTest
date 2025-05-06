@@ -81,4 +81,52 @@ class DefaultFeignClientConfigurationTest {
         assertNull(mgr,
                    "If cloudContext.getSslContext() throws, connectionManager(...) should return null");
     }
+
+@Test
+    void httpClient_withValidProperties_returnsNonNull() {
+        // given
+        when(props.getConnectionTimeout()).thenReturn(10);
+        when(props.isFollowRedirects()).thenReturn(true);
+
+        // when
+        CloseableHttpClient client = config.httpClient(connectionManager, props);
+
+        // then
+        assertNotNull(client,
+            "httpClient(...) should return a non-null CloseableHttpClient for valid inputs");
+    }
+
+    @Test
+    void httpClient_whenConnectionTimeoutThrows_returnsNull() {
+        // given getConnectionTimeout() blows up
+        when(props.getConnectionTimeout()).thenThrow(new RuntimeException("timeout error"));
+        when(props.isFollowRedirects()).thenReturn(true);
+
+        // when
+        CloseableHttpClient client = config.httpClient(connectionManager, props);
+
+        // then
+        assertNull(client,
+            "httpClient(...) should return null if getConnectionTimeout() throws");
+    }
+
+    @Test
+    void httpClient_whenFollowRedirectsThrows_returnsNull() {
+        // given isFollowRedirects() blows up
+        when(props.getConnectionTimeout()).thenReturn(5);
+        when(props.isFollowRedirects()).thenThrow(new IllegalStateException("redirect error"));
+
+        // when
+        CloseableHttpClient client = config.httpClient(connectionManager, props);
+
+        // then
+        assertNull(client,
+            "httpClient(...) should return null if isFollowRedirects() throws");
+    }
+
+
+
+
+
+
 }
