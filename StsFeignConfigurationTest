@@ -1,0 +1,85 @@
+package com.citi.enroll.biometrics.client.sts;
+
+import feign.Request;
+import feign.Response;
+import feign.codec.ErrorDecoder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.nio.charset.Charset;
+import java.util.Collections;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+class StsFeignConfigurationTest {
+
+    private StsFeignConfiguration config;
+    private Logger mockLogger;
+
+    @BeforeEach
+    void setUp() {
+        config = new StsFeignConfiguration();
+
+        // inyectamos un logger espiado en la clase
+        mockLogger = mock(Logger.class);
+        // reflection para sustituir el logger estático de Lombok
+        // (si no quieres esto, puedes omitir la verificación de logs)
+        setFinalStatic(
+            StsFeignConfiguration.class.getDeclaredField("log"),
+            mockLogger
+        );
+    }
+
+    @Test
+    void errorDecoder_returnsNull_andLogsError() throws Exception {
+        // 1. Creamos un Response de ejemplo
+        Request request = Request.create(
+            Request.HttpMethod.GET,
+            "/foo",
+            Collections.emptyMap(),
+            null,
+            Charset.defaultCharset(),
+            null
+        );
+        Response response = Response.builder()
+            .status(500)
+            .reason("Internal Server Error")
+            .request(request)
+            .headers(Collections.emptyMap())
+            .build();
+
+        // 2. Obtenemos el ErrorDecoder
+        ErrorDecoder decoder = config.errorDecoder();
+        assertNotNull(decoder, "Debe devolver un ErrorDecoder");
+
+        // 3. Invocamos decode()
+        Exception result = decoder.decode("StsFeignClient#someMethod()", response);
+
+        // 4. Comprobamos que devuelve null
+        assertNull(result, "decode debe devolver null");
+
+        // 5. Verificamos que se haya logueado el error con el response
+        ArgumentCaptor<String> msgCap = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<Object> argCap = ArgumentCaptor.forClass(Object.class);
+        verify(mockLogger).error(msgCap.capture(), argCap.capture());
+
+        assertEquals("Feign client exception - STS {}", msgCap.getValue());
+        assertSame(response, argCap.getValue());
+    }
+
+    /**
+     * Utility para inyectar logger espiado en campo estático final (lombok @Slf4j).
+     */
+    private static void setFinalStatic(java.lang.reflect.Field field, Object newValue) throws Exception {
+        field.setAccessible(true);
+        java.lang.reflect.Field modifiersField = java.lang.reflect.Field.class
+            .getDeclaredField("modifiers");
+        modifiersField.setAccessible(true);
+        modifiersField.setInt(field, field.getModifiers() & ~java.lang.reflect.Modifier.FINAL);
+        field.set(null, newValue);
+    }
+}
