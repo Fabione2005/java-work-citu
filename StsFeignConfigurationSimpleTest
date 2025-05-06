@@ -1,0 +1,36 @@
+package com.citi.enroll.biometrics.client.sts;
+
+import feign.Request;
+import feign.Response;
+import feign.codec.ErrorDecoder;
+import org.junit.jupiter.api.Test;
+
+import java.nio.charset.Charset;
+import java.util.Collections;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class StsFeignConfigurationSimpleTest {
+
+    @Test
+    void decodeReturnsNull() {
+        StsFeignConfiguration config = new StsFeignConfiguration();
+        ErrorDecoder decoder = config.errorDecoder();
+
+        Response resp = Response.builder()
+            .status(418)
+            .reason("I’m a teapot")
+            .request(Request.create(
+                Request.HttpMethod.GET,
+                "/hola",
+                Collections.emptyMap(),
+                null,
+                Charset.defaultCharset(),
+                null
+            ))
+            .headers(Collections.emptyMap())
+            .build();
+
+        assertNull(decoder.decode("anyKey", resp), "decode debe devolver null");
+    }
+}
