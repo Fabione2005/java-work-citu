@@ -1,0 +1,94 @@
+package com.citi.enroll.biometrics.client.ccs;
+
+import com.citi.enroll.biometrics.exception.BiometricsAPIException;
+import com.citi.enroll.biometrics.util.BiometricsCodeEnum;
+import com.citi.enroll.biometrics.util.BiometricsConstants;
+import feign.Request;
+import feign.Response;
+import feign.codec.ErrorDecoder;
+import org.junit.jupiter.api.Test;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class CcsFeignConfigurationTest {
+
+    private final ErrorDecoder decoder = new CcsFeignConfiguration().errorDecoder();
+
+    @Test
+    void decodeWithValidJson_shouldReturnExceptionWithBodyStatusCode() {
+        // Given a JSON payload that contains the STATUS_CODE key
+        String expectedStatus = "USER_LOCKED";
+        String json = "{\"" + BiometricsConstants.STATUS_CODE + "\":\"" + expectedStatus + "\"}";
+
+        Response response = Response.builder()
+            .status(400)
+            .reason("Bad Request")
+            .request(Request.create(
+                Request.HttpMethod.GET,
+                "/test",
+                Collections.emptyMap(),
+                null,
+                StandardCharsets.UTF_8,
+                null
+            ))
+            .headers(Collections.emptyMap())
+            .body(json.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8)
+            .build();
+
+        // When decode() is invoked
+        Exception ex = decoder.decode("someMethod", response);
+
+        // Then we get a BiometricsAPIException with the status code from the body
+        assertNotNull(ex,             "Exception should not be null");
+        assertTrue(ex instanceof BiometricsAPIException,
+                   "Exception type should be BiometricsAPIException");
+
+        BiometricsAPIException apiEx = (BiometricsAPIException) ex;
+        assertEquals(BiometricsCodeEnum.FEDERATED_ENROLL_ERROR,
+                     apiEx.getCode(),
+                     "Error code should be FEDERATED_ENROLL_ERROR");
+        assertEquals(expectedStatus,
+                     apiEx.getMessage(),
+                     "Exception message should match the status code from the JSON body");
+    }
+
+    @Test
+    void decodeWithInvalidJson_shouldReturnExceptionWithDefaultEnumMessage() {
+        // Given a payload that is not valid JSON
+        String invalidJson = "not a valid { json";
+
+        Response response = Response.builder()
+            .status(502)
+            .reason("Bad Gateway")
+            .request(Request.create(
+                Request.HttpMethod.POST,
+                "/fail",
+                Collections.emptyMap(),
+                null,
+                StandardCharsets.UTF_8,
+                null
+            ))
+            .headers(Collections.emptyMap())
+            .body(invalidJson.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8)
+            .build();
+
+        // When decode() is invoked
+        Exception ex = decoder.decode("otherMethod", response);
+
+        // Then we get a BiometricsAPIException with the default enum message
+        assertNotNull(ex,             "Exception should not be null");
+        assertTrue(ex instanceof BiometricsAPIException,
+                   "Exception type should be BiometricsAPIException");
+
+        BiometricsAPIException apiEx = (BiometricsAPIException) ex;
+        assertEquals(BiometricsCodeEnum.FEDERATED_ENROLL_ERROR,
+                     apiEx.getCode(),
+                     "Error code should be FEDERATED_ENROLL_ERROR");
+        assertEquals(BiometricsCodeEnum.FEDERATED_ENROLL_ERROR.getMessage(),
+                     apiEx.getMessage(),
+                     "Exception message should be the default enum message");
+    }
+}
