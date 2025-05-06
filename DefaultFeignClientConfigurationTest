@@ -1,0 +1,84 @@
+package com.citi.enroll.biometrics.client.ccs;  // ← put this in the same package
+
+import feign.Logger;
+import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.cloud.openfeign.FeignHttpClientProperties;
+
+import javax.net.ssl.SSLContext;
+
+import java.time.Duration;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+// You need Mockito on your test classpath
+class DefaultFeignClientConfigurationTest {
+
+    private DefaultFeignClientConfiguration config;
+    private CloudContext mockCloudContext;
+    private FeignHttpClientProperties props;
+
+    @BeforeEach
+    void setUp() throws Exception {
+        // 1) Create the config under test
+        config = new DefaultFeignClientConfiguration();
+
+        // 2) Mock the CloudContext and inject it
+        mockCloudContext = mock(CloudContext.class);
+        when(mockCloudContext.getSslContext())
+            .thenReturn(SSLContext.getDefault());
+        // field is package-private, so we can set it directly
+        config.cloudContext = mockCloudContext;
+
+        // 3) Prepare a FeignHttpClientProperties with non-zero values
+        props = new FeignHttpClientProperties();
+        props.setTimeToLive(60);                     // seconds
+        props.setMaxConnections(20);
+        props.setMaxConnectionsPerRoute(10);
+        props.setConnectionTimerRepeat(15_000L);      // ms
+    }
+
+    @Test
+    void feignLoggerLevel_shouldBeBasic() {
+        // feignLoggerLevel() is a simple @Bean
+        Logger.Level lvl = config.feignLoggerLevel();
+        assertEquals(Logger.Level.BASIC,
+                     lvl,
+                     "Feign logger level should be BASIC");
+    }
+
+    @Test
+    void connectionManager_withValidProps_returnsPoolingManager() {
+        // When
+        HttpClientConnectionManager mgr = config.connectionManager(props);
+
+        // Then
+        assertNotNull(mgr, "connectionManager(...) should not return null on success");
+        assertTrue(mgr instanceof PoolingHttpClientConnectionManager,
+                   "Should be a PoolingHttpClientConnectionManager");
+        PoolingHttpClientConnectionManager p = (PoolingHttpClientConnectionManager) mgr;
+        assertEquals(props.getMaxConnections(),
+                     p.getMaxTotal(),
+                     "Max total connections should match property");
+        assertEquals(props.getMaxConnectionsPerRoute(),
+                     p.getDefaultMaxPerRoute(),
+                     "Max per-route should match property");
+    }
+
+    @Test
+    void connectionManager_whenSslContextFails_returnsNull() {
+        // Simulate a failure in SSLContext lookup
+        when(mockCloudContext.getSslContext())
+            .thenThrow(new RuntimeException("SSL context failure"));
+
+        // When
+        HttpClientConnectionManager mgr = config.connectionManager(props);
+
+        // Then
+        assertNull(mgr,
+                   "If cloudContext.getSslContext() throws, connectionManager(...) should return null");
+    }
+}
