@@ -1,0 +1,120 @@
+package com.citi.enroll.biometrics.client.ccs;
+
+import feign.Logger;
+import org.apache.http.conn.HttpClientConnectionManager;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.cloud.openfeign.FeignHttpClientProperties;
+
+import javax.net.ssl.SSLContext;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+// Necesitas tener Mockito en tu classpath de tests
+class DefaultFeignClientConfigurationTest {
+
+    private DefaultFeignClientConfiguration config;
+    private CloudContext mockCloudContext;
+    private FeignHttpClientProperties props;
+
+    @BeforeEach
+    void setUp() throws Exception {
+        // 1) Creamos la configuración
+        config = new DefaultFeignClientConfiguration();
+
+        // 2) Mockeamos y inyectamos el CloudContext
+        mockCloudContext = mock(CloudContext.class);
+        when(mockCloudContext.getSslContext())
+            .thenReturn(SSLContext.getDefault());
+        // Es package-private, así que podemos asignarlo directamente
+        config.cloudContext = mockCloudContext;
+
+        // 3) Preparamos un FeignHttpClientProperties “real” para los tests existentes
+        props = new FeignHttpClientProperties();
+        props.setTimeToLive(60);
+        props.setMaxConnections(20);
+        props.setMaxConnectionsPerRoute(10);
+        props.setConnectionTimerRepeat(15_000L);
+    }
+
+    @Test
+    void feignLoggerLevel_shouldBeBasic() {
+        Logger.Level lvl = config.feignLoggerLevel();
+        assertEquals(Logger.Level.BASIC,
+                     lvl,
+                     "Feign logger level should be BASIC");
+    }
+
+    @Test
+    void connectionManager_withValidProps_returnsPoolingManager() {
+        HttpClientConnectionManager mgr = config.connectionManager(props);
+        assertNotNull(mgr, "connectionManager(...) should not return null on success");
+        assertTrue(mgr instanceof PoolingHttpClientConnectionManager,
+                   "Should be a PoolingHttpClientConnectionManager");
+        PoolingHttpClientConnectionManager p = (PoolingHttpClientConnectionManager) mgr;
+        assertEquals(props.getMaxConnections(),
+                     p.getMaxTotal(),
+                     "Max total connections should match property");
+        assertEquals(props.getMaxConnectionsPerRoute(),
+                     p.getDefaultMaxPerRoute(),
+                     "Max per-route should match property");
+    }
+
+    @Test
+    void connectionManager_whenSslContextFails_returnsNull() {
+        when(mockCloudContext.getSslContext())
+            .thenThrow(new RuntimeException("SSL context failure"));
+        HttpClientConnectionManager mgr = config.connectionManager(props);
+        assertNull(mgr,
+                   "If cloudContext.getSslContext() throws, connectionManager(...) should return null");
+    }
+
+    // ——— Tests nuevos para httpClient(...) ———
+
+    @Test
+    void httpClient_withValidProperties_returnsNonNull() {
+        // Given a mocked connection manager and properties
+        HttpClientConnectionManager localConnMgr = mock(HttpClientConnectionManager.class);
+        FeignHttpClientProperties mockProps = mock(FeignHttpClientProperties.class);
+        when(mockProps.getConnectionTimeout()).thenReturn(10);
+        when(mockProps.isFollowRedirects()).thenReturn(true);
+
+        // When
+        Object client = config.httpClient(localConnMgr, mockProps);
+
+        // Then
+        assertNotNull(client,
+            "httpClient(...) should return a non-null client when properties are valid");
+    }
+
+    @Test
+    void httpClient_whenConnectionTimeoutThrows_returnsNull() {
+        HttpClientConnectionManager localConnMgr = mock(HttpClientConnectionManager.class);
+        FeignHttpClientProperties mockProps = mock(FeignHttpClientProperties.class);
+        when(mockProps.getConnectionTimeout())
+            .thenThrow(new RuntimeException("timeout error"));
+        when(mockProps.isFollowRedirects()).thenReturn(true);
+
+        Object client = config.httpClient(localConnMgr, mockProps);
+
+        assertNull(client,
+            "httpClient(...) should return null if getConnectionTimeout() throws");
+    }
+
+    @Test
+    void httpClient_whenFollowRedirectsThrows_returnsNull() {
+        HttpClientConnectionManager localConnMgr = mock(HttpClientConnectionManager.class);
+        FeignHttpClientProperties mockProps = mock(FeignHttpClientProperties.class);
+        when(mockProps.getConnectionTimeout()).thenReturn(5);
+        when(mockProps.isFollowRedirects())
+            .thenThrow(new IllegalStateException("redirect error"));
+
+        Object client = config.httpClient(localConnMgr, mockProps);
+
+        assertNull(client,
+            "httpClient(...) should return null if isFollowRedirects() throws");
+    }
+}
