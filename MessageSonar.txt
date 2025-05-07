@@ -1,0 +1,1 @@
+From what I researched about Sonar, it sometimes fails to recognize null checks when method calls are chained (like getBody().getSomething()) within a complex condition. By extracting getBody() into a local variable after the null check, the analysis tool can more easily verify that the dereference is safe. This change should prevent the false positive reported by Sonar.
