@@ -1,0 +1,1 @@
+To be honest I was not sure about that, since that exception is already declared in the ChangePassword ControllerAdvice along with another exception in the same method with a 400, I preferred to use a new exception so as not to change that configuration, but okay I will use the existing exception
