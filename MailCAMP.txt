@@ -1,0 +1,16 @@
+Subject: Assistance Required: Delegate Selection for VA Tickets in CAMP Portal
+
+Dear CAMP Support Team,
+
+I hope you’re doing well. I am currently attempting to review several Vulnerability Assessment (VA) tickets in the CAMP portal, but I am unable to select my Citi Manager as a “Delegate” in order to access those records. It appears that this option is not available in my portal view, and as a result, I am blocked from completing my VA review tasks.
+
+Could you please assist me by enabling the delegate selection for my account, or advise me on the steps needed to grant my Citi Manager delegate permissions? Any guidance or configuration changes you can provide would be greatly appreciated.
+
+Thank you in advance for your prompt assistance. Please let me know if you require any additional information (e.g., my user ID or portal details) to resolve this matter.
+
+Best regards,
+
+Fabio [Your Last Name]
+Backend Developer – Registration/Activation Team
+Citi Bank
+fabio.lastname@citi.com
