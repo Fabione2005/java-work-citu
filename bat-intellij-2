@@ -1,0 +1,8 @@
+@echo off
+rem 👉 Definir JAVA_HOME y IDEA_JDK a nivel local para esta ejecución
+set JAVA_HOME=C:\Users\fo34949\AppData\Local\CitiSoftware\CTC2064504_JDK_21.0_6W64
+set IDEA_JDK=%JAVA_HOME%
+set PATH=%JAVA_HOME%\bin;%PATH%
+
+rem 👉 Ejecutar IntelliJ ignorando variables del sistema
+start "" "C:\Users\fo34949\AppData\Local\CitiSoftware\CTC2123565_INTELLIJIDEA_COMMUNITYEDITION2024.3.3\bin\idea64.exe"
