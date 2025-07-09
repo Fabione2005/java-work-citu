@@ -1,2 +1,5 @@
 
 Generate a complete JUnit 5 test class for `UserService`, using Mockito to mock dependencies like `UserRepository` and `EmailService`. Cover all edge cases, exceptions, and logical branches. Make sure all test methods are well named. Return the complete test class.
+
+Generate a complete JUnit 5 test class for `UserService`, using Mockito to mock dependencies such as `UserRepository` and `EmailService`. Ensure that all logical branches, edge cases, and exception scenarios are covered. Name each test method clearly to reflect the case it tests. If there are private methods or variables in the class, access them appropriately (e.g., through public methods or reflection if needed) to avoid compilation issues. Return the full test class with imports, annotations, and setup.
+
