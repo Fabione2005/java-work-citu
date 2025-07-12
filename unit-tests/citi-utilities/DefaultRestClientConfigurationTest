@@ -1,0 +1,73 @@
+package com.citi.common.utilities.ssl;
+
+import com.citi.common.utilities.ssl.config.RestHttpClientProperties;
+import com.citigroup.ccp.cloud.CloudContext;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.util.TimeValue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.web.client.RestTemplate;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+class DefaultRestClientConfigurationTest {
+
+    private DefaultRestClientConfiguration config;
+    private CloudContext cloudContext;
+
+    @BeforeEach
+    void setUp() {
+        config = new DefaultRestClientConfiguration();
+        cloudContext = mock(CloudContext.class);
+
+        config.cloudContext = cloudContext;
+
+        // simular valores inyectados
+        config.readTimeout = 11000;
+        config.connectTimeout = 11000;
+        config.connectionRequestTimeout = 11000;
+    }
+
+    @Test
+    void testRestTemplate_shouldReturnValidInstance() {
+        HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
+        RestTemplate restTemplate = config.restTemplate(factory);
+
+        assertNotNull(restTemplate);
+        assertEquals(factory, restTemplate.getRequestFactory());
+    }
+
+    @Test
+    void testHttpClientConnectionManager_shouldReturnNonNull() {
+        RestHttpClientProperties props = mock(RestHttpClientProperties.class);
+        PoolingHttpClientConnectionManager manager = config.httpClientConnectionManager(props);
+
+        assertNotNull(manager);
+    }
+
+    @Test
+    void testCloseableHttpClient_shouldBuildSuccessfully() {
+        RestHttpClientProperties props = mock(RestHttpClientProperties.class);
+        CloseableHttpClient client = config.closeableHttpClient(props);
+
+        assertNotNull(client);
+    }
+
+    @Test
+    void testSslContextAndHostnameVerifier_shouldReturnNullByDefault() {
+        assertNull(config.sslContext());
+        assertNull(config.hostnameVerifier());
+    }
+
+    @Test
+    void testConnectionManagerTimer_shouldBeInitialized() {
+        assertNotNull(config.connectionManagerTimer);
+    }
+}
