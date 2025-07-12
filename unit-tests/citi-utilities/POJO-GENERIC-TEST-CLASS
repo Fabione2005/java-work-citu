@@ -1,5 +1,7 @@
 import org.junit.jupiter.api.Test;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class PersonTest {
@@ -20,19 +22,21 @@ public class PersonTest {
 
         for (Method method : methods) {
             if (isGetter(method)) {
-                method.invoke(obj); // just invoking it for coverage
+                method.invoke(obj); // invocar para cobertura
             }
         }
     }
 
     private boolean isSetter(Method method) {
-        return method.getName().startsWith("set") &&
-               method.getParameterCount() == 1;
+        return method.getName().startsWith("set")
+                && method.getParameterCount() == 1
+                && Modifier.isPublic(method.getModifiers());
     }
 
     private boolean isGetter(Method method) {
-        return (method.getName().startsWith("get") || method.getName().startsWith("is")) &&
-               method.getParameterCount() == 0;
+        return (method.getName().startsWith("get") || method.getName().startsWith("is"))
+                && method.getParameterCount() == 0
+                && Modifier.isPublic(method.getModifiers());
     }
 
     private Object getDummyValue(Class<?> type) {
@@ -41,7 +45,17 @@ public class PersonTest {
         if (type.equals(boolean.class) || type.equals(Boolean.class)) return true;
         if (type.equals(double.class) || type.equals(Double.class)) return 3.14;
         if (type.equals(long.class) || type.equals(Long.class)) return 123L;
-        // add more types as needed
+
+        // Si es otro POJO, intenta instanciarlo
+        try {
+            if (!type.isPrimitive() && !type.isEnum() && !type.isInterface()
+                    && !type.getPackageName().startsWith("java")) {
+                return type.getDeclaredConstructor().newInstance();
+            }
+        } catch (Exception e) {
+            // No se puede instanciar, devolver null
+        }
+
         return null;
     }
 }
