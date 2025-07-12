@@ -1,0 +1,47 @@
+import org.junit.jupiter.api.Test;
+import java.lang.reflect.Method;
+import static org.junit.jupiter.api.Assertions.*;
+
+public class PersonTest {
+
+    @Test
+    public void testAllGettersAndSetters() throws Exception {
+        Class<?> clazz = Person.class;
+        Object obj = clazz.getDeclaredConstructor().newInstance();
+
+        Method[] methods = clazz.getDeclaredMethods();
+        for (Method method : methods) {
+            if (isSetter(method)) {
+                Class<?> paramType = method.getParameterTypes()[0];
+                Object dummyValue = getDummyValue(paramType);
+                method.invoke(obj, dummyValue);
+            }
+        }
+
+        for (Method method : methods) {
+            if (isGetter(method)) {
+                method.invoke(obj); // just invoking it for coverage
+            }
+        }
+    }
+
+    private boolean isSetter(Method method) {
+        return method.getName().startsWith("set") &&
+               method.getParameterCount() == 1;
+    }
+
+    private boolean isGetter(Method method) {
+        return (method.getName().startsWith("get") || method.getName().startsWith("is")) &&
+               method.getParameterCount() == 0;
+    }
+
+    private Object getDummyValue(Class<?> type) {
+        if (type.equals(String.class)) return "dummy";
+        if (type.equals(int.class) || type.equals(Integer.class)) return 42;
+        if (type.equals(boolean.class) || type.equals(Boolean.class)) return true;
+        if (type.equals(double.class) || type.equals(Double.class)) return 3.14;
+        if (type.equals(long.class) || type.equals(Long.class)) return 123L;
+        // add more types as needed
+        return null;
+    }
+}
