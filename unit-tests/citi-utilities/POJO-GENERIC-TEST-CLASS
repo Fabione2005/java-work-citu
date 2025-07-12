@@ -1,28 +1,37 @@
 import org.junit.jupiter.api.Test;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class PersonTest {
+public class PojoGetterSetterTest {
+
+    private final List<Class<?>> pojoClasses = List.of(
+            Person.class,
+            Address.class
+            // agrega aquí todos los POJOs que quieras probar
+    );
 
     @Test
-    public void testAllGettersAndSetters() throws Exception {
-        Class<?> clazz = Person.class;
-        Object obj = clazz.getDeclaredConstructor().newInstance();
+    public void testAllPojoGettersAndSetters() throws Exception {
+        for (Class<?> clazz : pojoClasses) {
+            Object obj = clazz.getDeclaredConstructor().newInstance();
+            Method[] methods = clazz.getDeclaredMethods();
 
-        Method[] methods = clazz.getDeclaredMethods();
-        for (Method method : methods) {
-            if (isSetter(method)) {
-                Class<?> paramType = method.getParameterTypes()[0];
-                Object dummyValue = getDummyValue(paramType);
-                method.invoke(obj, dummyValue);
+            for (Method method : methods) {
+                if (isSetter(method)) {
+                    Class<?> paramType = method.getParameterTypes()[0];
+                    Object dummyValue = getDummyValue(paramType);
+                    method.invoke(obj, dummyValue);
+                }
             }
-        }
 
-        for (Method method : methods) {
-            if (isGetter(method)) {
-                method.invoke(obj); // invocar para cobertura
+            for (Method method : methods) {
+                if (isGetter(method)) {
+                    method.invoke(obj); // cobertura
+                }
             }
         }
     }
@@ -46,14 +55,16 @@ public class PersonTest {
         if (type.equals(double.class) || type.equals(Double.class)) return 3.14;
         if (type.equals(long.class) || type.equals(Long.class)) return 123L;
 
-        // Si es otro POJO, intenta instanciarlo
+        // Instanciar POJOs anidados
         try {
-            if (!type.isPrimitive() && !type.isEnum() && !type.isInterface()
+            if (!type.isPrimitive()
+                    && !type.isEnum()
+                    && !type.isInterface()
                     && !type.getPackageName().startsWith("java")) {
                 return type.getDeclaredConstructor().newInstance();
             }
         } catch (Exception e) {
-            // No se puede instanciar, devolver null
+            // Si falla, se devuelve null
         }
 
         return null;
