@@ -1,0 +1,6 @@
+Write a full JUnit 5 test class for the following Java POJO.  
+Generate one test method for each getter and setter.  
+Each test should be as simple as possible: create an instance of the class, set a value using the setter, and assert that the getter returns the expected value.  
+Do not use any mocks or additional libraries — just basic JUnit 5.  
+Name each test method like: testGet[PropertyName] or testSet[PropertyName].  
+Give me the complete test class.
