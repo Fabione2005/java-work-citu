@@ -1,0 +1,14 @@
+@Test
+void testPrivateMethodUsingReflection() throws Exception {
+    MyClass instance = new MyClass();
+
+    // Get the private method with one String parameter
+    Method privateMethod = MyClass.class.getDeclaredMethod("myPrivateMethod", String.class);
+    privateMethod.setAccessible(true); // Bypass the private modifier
+
+    // Invoke the private method with a test value
+    Object result = privateMethod.invoke(instance, "value");
+
+    // Assert that the result matches the expected value
+    assertEquals("expected", result);
+}
