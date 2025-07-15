@@ -1,0 +1,28 @@
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+public class EnumTest {
+
+    private final List<Class<? extends Enum<?>>> enumClasses = List.of(
+        Status.class,
+        Role.class
+        // Agrega tus enums aquí
+    );
+
+    @Test
+    public void testAllEnums() {
+        for (Class<? extends Enum<?>> enumClass : enumClasses) {
+            Enum<?>[] constants = enumClass.getEnumConstants();
+            assertNotNull(constants, enumClass.getSimpleName() + " should not be null");
+
+            for (Enum<?> constant : constants) {
+                // valueOf should return the same enum constant
+                Enum<?> fromName = Enum.valueOf((Class) enumClass, constant.name());
+                assertEquals(constant, fromName, "valueOf should match for " + constant.name());
+            }
+        }
+    }
+}
