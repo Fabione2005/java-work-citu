@@ -1,0 +1,4 @@
+index=ose* container_name="gt3ecsprod-dgl-fdn-d-logineligibleflags"
+| rex field=message "ose_uuid=(?<ose_uuid>[A-F0-9-]+)"
+| stats count as log_count by ose_uuid
+| stats avg(log_count) as AvgLogCountPerTransaction min(log_count) as MinLogs max(log_count) as MaxLogs
