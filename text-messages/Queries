@@ -20,3 +20,12 @@ index=... container_name=*logineligibleflags* ose_channel=MOB
 | rex field=message "^(?<msg_pattern>[A-Za-z ].*) ose_uuid="
 | stats count as logEvents by msg_pattern
 | sort -logEvents
+
+
+index=... container_name=*logineligibleflags* ose_channel=MOB
+| eval msg_norm = lower(message)
+| rex field=msg_norm mode=sed "s/[0-9a-fA-F-]{36}/<UUID>/g"
+| rex field=msg_norm mode=sed "s/\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}/<TS>/g"
+| rex field=msg_norm mode=sed "s/\b\d+\b/<NUM>/g"
+| stats count as logEvents by msg_norm
+| sort -logEvents
