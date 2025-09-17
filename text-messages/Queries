@@ -14,3 +14,9 @@ index=int_gcg_nam_pcf_application_perf_* ose_channel=MOB container_name=*3ECSPER
 index=int_gcg_nam_osev4logs_170600 ose_channel=MOB container_name=*3ECSPROD-DGL-FDN-D-LOGINELIGIBLEFLAGS*
 | stats count as logEventsCount by ose_uuid
 | fields ose_uuid
+
+
+index=... container_name=*logineligibleflags* ose_channel=MOB
+| rex field=message "^(?<msg_pattern>[A-Za-z ].*) ose_uuid="
+| stats count as logEvents by msg_pattern
+| sort -logEvents
