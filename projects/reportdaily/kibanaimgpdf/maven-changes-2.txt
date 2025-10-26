@@ -1,0 +1,27 @@
+<!-- Tess4J (API) -->
+<dependency>
+  <groupId>net.sourceforge.tess4j</groupId>
+  <artifactId>tess4j</artifactId>
+  <version>5.11.0</version>
+</dependency>
+
+<!-- Nativos de Tesseract/Leptonica por OS (Windows 64 bits) -->
+<dependency>
+  <groupId>org.bytedeco</groupId>
+  <artifactId>tesseract</artifactId>
+  <version>5.4.0-1.5.10</version>
+  <classifier>windows-x86_64</classifier>
+</dependency>
+<dependency>
+  <groupId>org.bytedeco</groupId>
+  <artifactId>leptonica</artifactId>
+  <version>1.84.1-1.5.10</version>
+  <classifier>windows-x86_64</classifier>
+</dependency>
+
+<!-- Runtime de JavaCPP que carga las DLL/SO -->
+<dependency>
+  <groupId>org.bytedeco</groupId>
+  <artifactId>javacpp</artifactId>
+  <version>1.5.10</version>
+</dependency>
