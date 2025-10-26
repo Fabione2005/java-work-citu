@@ -1,0 +1,68 @@
+Subject: Findings and Proposed Approaches for Extracting Data from Kibana Reports
+
+Hi Gopi and Jaswanth,
+
+I’ve been reviewing alternatives for enabling our Java reporting tool to process the new Kibana reports. Below is a summary of the findings and two possible implementation options:
+
+Option 1 – Process the PDF using OCR
+
+Since Kibana exports image-based PDFs (no text layer), we can extract the values using OCR with Tesseract.
+This would require adding the following artifacts to the CitiGroup dependency repository:
+
+net.sourceforge.tess4j:tess4j:5.11.0
+
+org.bytedeco:tesseract:5.4.0-1.5.10 (with OS classifiers such as windows-x86_64)
+
+org.bytedeco:leptonica:1.84.1-1.5.10
+
+org.bytedeco:javacpp:1.5.10
+
+org.apache.pdfbox:pdfbox:3.0.2
+
+org.apache.pdfbox:fontbox:3.0.2
+
+commons-logging:commons-logging:1.2
+
+Pros:
+
+Works directly with the current PDF exports.
+
+Once integrated, users continue the same workflow (no extra steps).
+
+Cons:
+
+Requires new dependencies in our internal repository.
+
+Slightly heavier implementation (OCR performance and image rendering).
+
+Higher maintenance and processing cost compared to text parsing.
+
+Option 2 – Parse the HTML directly
+
+The dashboard’s HTML contains both the metric titles and values, so the data can be extracted directly using JSoup (simple DOM parsing).
+Users would need to download the dashboard as an HTML page instead of a PDF before running the report.
+
+Pros:
+
+Very lightweight (only org.jsoup:jsoup:1.18.1 dependency).
+
+Faster, simpler, and 100% accurate (no OCR).
+
+Minimal code changes required in the current report generator.
+
+Cons:
+
+Relies on Kibana’s HTML structure — any future UI changes may require adjusting selectors.
+
+Slightly different workflow for users (must download the HTML file).
+
+Summary:
+
+The OCR solution integrates seamlessly with the current process but adds heavier dependencies and complexity.
+
+The HTML approach is cleaner, faster, and easier to maintain, but depends on Kibana’s front-end structure and a minor change in the user workflow.
+
+Let me know which direction you think would be best so I can prepare the implementation plan accordingly.
+
+Best regards,
+Fabio
