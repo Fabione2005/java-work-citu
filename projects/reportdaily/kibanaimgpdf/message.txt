@@ -66,3 +66,18 @@ Let me know which direction you think would be best so I can prepare the impleme
 
 Best regards,
 Fabio
+
+
+
+
+net.sourceforge.tess4j:tess4j:5.11.0 – Java API/wrapper for Tesseract. This is the API our code calls (ITesseract#doOCR).
+
+org.bytedeco:tesseract:5.4.0-1.5.10 (+ classifier windows-x86_64 or linux-x86_64) – Native Tesseract binaries packaged inside the JAR (lets us use OCR without installing Tesseract on the OS).
+
+org.bytedeco:leptonica:1.84.1-1.5.10 (+ same classifier) – Native Leptonica image library that Tesseract depends on for pre-processing images.
+
+org.bytedeco:javacpp:1.5.10 – Loader that extracts/loads the native DLL/SO from those JARs at runtime.
+
+org.apache.pdfbox:pdfbox:3.0.2 – Renders the image-based PDF pages to BufferedImage (300 DPI) for OCR; also used to attempt text extraction for legacy Splunk PDFs.
+
+org.apache.pdfbox:fontbox:3.0.2 – PDFBox dependency for font handling.
