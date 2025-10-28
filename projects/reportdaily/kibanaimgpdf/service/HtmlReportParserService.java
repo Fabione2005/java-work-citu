@@ -46,4 +46,28 @@ public class HtmlReportParserService {
 
         return metrics;
     }
+
+    // com.citi.reports.service.HtmlReportParserService
+public Map<String, Long> parseKibanaHtmlAsMap(File htmlFile) throws Exception {
+    Map<String, Long> results = new LinkedHashMap<>();
+
+    Document doc = Jsoup.parse(htmlFile, StandardCharsets.UTF_8.name());
+    Elements panels = doc.select("div.react-grid-item.react-draggable.react-resizable");
+
+    for (Element panel : panels) {
+        Element titleEl = panel.selectFirst("h2.embPanel__title span.embPanel__titleText");
+        String title = (titleEl != null) ? titleEl.text().trim() : "Unknown";
+
+        Element valueEl = panel.selectFirst("div.mtrVis__value span[ng-non-bindable]");
+        long value = 0L;
+        if (valueEl != null) {
+            String numberStr = valueEl.text().replaceAll("[^0-9]", "");
+            if (!numberStr.isEmpty()) value = Long.parseLong(numberStr);
+        }
+
+        // Si un mismo título aparece más de una vez en el MISMO HTML, también sumamos
+        results.merge(title, value, Long::sum);
+    }
+    return results;
+}
 }
