@@ -28,5 +28,16 @@ public class ReportApplication implements CommandLineRunner {
 
         System.out.println("✅ Metrics extracted from Kibana HTML:\n");
         metrics.forEach(System.out::println);
+
+        HtmlReportParserService parser = new HtmlReportParserService();
+        HtmlFolderAggregator aggregator = new HtmlFolderAggregator(parser);
+    
+        // Solo la carpeta (sin nombre de archivo)
+        Path folder = Paths.get("C:/Users/<tu_usuario>/Downloads/kibana-report-files");
+    
+        Map<String, Long> summed = aggregator.aggregateFolder(folder);
+    
+        System.out.println("✅ Metrics aggregated from all HTML files in folder:\n");
+        summed.forEach((k, v) -> System.out.println(k + " => " + v));
     }
 }
