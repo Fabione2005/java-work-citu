@@ -1,1 +1,66 @@
 
+//////////////En caso de que haya una variable siendo instanciada dento del metodo INICIO /////
+
+//Clase donde esta el metodo a testear.. *Se debe hacer una pequeña modificacion*
+
+// <— nuevo: punto único para crear el mapper
+    protected ObjectMapper newObjectMapper() {
+        return new ObjectMapper();
+    }
+
+    private BiometricsEnrollmentResponse processSnapshotAndDonrPopperEnrollment(...) {
+        // ...
+        try {
+            ObjectMapper mapper = newObjectMapper();  // <— usar factory
+            throw new BiometricsAPIException(
+                BiometricsCodeEnum.ENROLL_SP_CONFIRM_ERROR,
+                mapper.writeValueAsString(new ErrorResponse(TypeEnum.ERROR, BiometricsCodeEnum.ENROLL_SP_CONFIRM_ERROR))
+            );
+        } catch (JsonProcessingException e) {
+            // línea 228 (catch) — lo que querés cubrir
+            // ...
+        }
+    }
+
+////Ejemplo de implementacion en clase testing
+
+class BiometricsAggregatorTest {
+
+    // Mapper que SIEMPRE falla al serializar
+    static class FailingMapper extends ObjectMapper {
+        @Override
+        public String writeValueAsString(Object value) throws JsonProcessingException {
+            throw JsonMappingException.fromUnexpectedIOE(new java.io.IOException("boom"));
+        }
+    }
+
+    // Subclase de prueba que devuelve nuestro mapper fallido
+    static class BiometricsAggregatorForTest extends BiometricsAggregator {
+        @Override
+        protected ObjectMapper newObjectMapper() {
+            return new FailingMapper();
+        }
+        // constructores según necesites (inyectá deps reales/mocks normales)
+    }
+
+    @Test
+    void shouldReachJsonProcessingExceptionCatch() {
+        BiometricsAggregator aggregator = new BiometricsAggregatorForTest(/* deps */);
+
+        // Prepará inputs para que entre al try {... newObjectMapper() ...}
+        // (mismo setup que usás normalmente para disparar ese bloque)
+        Object resp = /* getDeviceEnrollmentResponse con userEnrolledDeviceId not blank y != uniqueDeviceIdentifier */;
+        Object req  = /* bioEnrollReq con isForceEnroll()==false */;
+        String uniqueDeviceIdentifier = "ABC-123";
+
+        // Invocar el método privado (o, si existe, el público que lo usa)
+        assertThrows(
+            /* la excepción que tu catch vuelve a lanzar, p.ej. BiometricsAPIException.class */,
+            () -> ReflectionTestUtils.invokeMethod(
+                    aggregator,
+                    "processSnapshotAndDonrPopperEnrollment",
+                    resp, req, uniqueDeviceIdentifier
+            )
+        );
+    }
+}
