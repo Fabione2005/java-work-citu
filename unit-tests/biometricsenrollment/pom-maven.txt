@@ -1,1 +1,5 @@
+testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+testImplementation 'org.mockito:mockito-junit-jupiter:5.12.0'
+testImplementation 'org.mockito:mockito-inline:5.2.0'   // <- habilita mockConstruction
+testImplementation 'org.springframework:spring-test:6.1.6' // por ReflectionTestUtils
 
