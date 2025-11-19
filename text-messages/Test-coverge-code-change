@@ -1,0 +1,37 @@
+I identified that the condition inside the catch (Exception ex) block:
+
+if (ex instanceof HttpServerErrorException) { ... }
+
+
+was dead code and could never be executed.
+
+Why it was unreachable
+
+HttpServerErrorException is a subclass of HttpStatusCodeException.
+
+The method has a catch (HttpStatusCodeException hscse) placed before the general catch (Exception ex).
+
+Because Java processes catch blocks in order, any HttpServerErrorException will always be captured by the first catch (HttpStatusCodeException) and will never reach the generic catch(Exception) block.
+
+Therefore, the instanceof HttpServerErrorException branch was logically impossible to execute, making it unreachable and untestable.
+
+What change was made
+
+I removed only the unreachable instanceof HttpServerErrorException condition inside the generic catch block.
+This is a minimal and safe cleanup that:
+
+Does not change the functional behavior of the service.
+
+Keeps all existing exception handling logic intact.
+
+Removes dead code that could never be covered by tests.
+
+Improves maintainability and clarity.
+
+Impact
+
+No runtime behavior changes.
+
+No logging changes for valid exception cases.
+
+Test coverage can now reflect the actual reachable logic.
