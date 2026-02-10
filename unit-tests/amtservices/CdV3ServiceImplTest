@@ -1,0 +1,286 @@
+package com.citi.amt.services.service.impl;
+
+import com.citi.amt.services.client.AmtPersistenceFeignClient;
+import com.citi.amt.services.client.CDV3FeignClient;
+import com.citi.amt.services.dto.ResponseClientAndAccessTypeDTO;
+import com.citi.amt.services.exception.CdV3Exception;
+import com.citi.amt.services.model.AccessTypeDetailsResponse;
+import com.citi.amt.services.model.SearchLegalEntityResponse;
+import feign.FeignException;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Answers;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+/**
+ * Tests for {@link CdV3ServiceImpl}
+ *
+ * Notes:
+ * - You may need to adjust the package + imports of DTOs/clients/models to match your project.
+ * - These tests are written to cover all branches in all methods shown in CdV3ServiceImpl.
+ */
+@ExtendWith(MockitoExtension.class)
+class CdV3ServiceImplTest {
+
+    @Mock
+    private CDV3FeignClient CDV3FeignClient;
+
+    @Mock
+    private AmtPersistenceFeignClient amtPersistenceFeignClient;
+
+    @InjectMocks
+    private CdV3ServiceImpl service;
+
+    @BeforeEach
+    void setUp() {
+        // Ensure @Value-injected field is present in unit tests
+        ReflectionTestUtils.setField(service, "appName", "eFlow AMT (test)");
+    }
+
+    // -------------------------
+    // searchAccessTypeDetails()
+    // -------------------------
+
+    @Test
+    void searchAccessTypeDetails_success_returnsResponse_andDoesNotTrackEvent() {
+        // given
+        String accessingGfcid = "GFCID-1";
+        String clientId = "CLIENT-1";
+        String dealId = "DEAL-1";
+
+        AccessTypeDetailsResponse expected = mock(AccessTypeDetailsResponse.class);
+
+        when(CDV3FeignClient.getCdV3SearchAccessTypeDetails(
+                anyString(), anyString(), eq(accessingGfcid), isNull(), eq(clientId)
+        )).thenReturn(expected);
+
+        // when
+        AccessTypeDetailsResponse actual =
+                service.searchAccessTypeDetails(accessingGfcid, clientId, dealId);
+
+        // then
+        assertSame(expected, actual);
+
+        verify(CDV3FeignClient, times(1)).getCdV3SearchAccessTypeDetails(
+                anyString(), anyString(), eq(accessingGfcid), isNull(), eq(clientId)
+        );
+        verifyNoInteractions(amtPersistenceFeignClient);
+    }
+
+    @Test
+    void searchAccessTypeDetails_whenUnauthorized_tracksEvent_andThrowsCdV3Exception() {
+        // given
+        String accessingGfcid = "GFCID-2";
+        String clientId = "CLIENT-2";
+        String dealId = "DEAL-2";
+
+        FeignException.Unauthorized unauthorized = mock(FeignException.Unauthorized.class);
+
+        when(CDV3FeignClient.getCdV3SearchAccessTypeDetails(
+                anyString(), anyString(), eq(accessingGfcid), isNull(), eq(clientId)
+        )).thenThrow(unauthorized);
+
+        // when + then
+        assertThrows(CdV3Exception.class,
+                () -> service.searchAccessTypeDetails(accessingGfcid, clientId, dealId));
+
+        verify(CDV3FeignClient, times(1)).getCdV3SearchAccessTypeDetails(
+                anyString(), anyString(), eq(accessingGfcid), isNull(), eq(clientId)
+        );
+
+        // We don't need to assert the exact request object here to cover the branch
+        verify(amtPersistenceFeignClient, times(1)).addEventTracker(any());
+        verifyNoMoreInteractions(amtPersistenceFeignClient);
+    }
+
+    @Test
+    void searchAccessTypeDetails_whenGenericException_tracksEvent_andThrowsCdV3Exception() {
+        // given
+        String accessingGfcid = "GFCID-3";
+        String clientId = "CLIENT-3";
+        String dealId = "DEAL-3";
+
+        RuntimeException boom = new RuntimeException("boom");
+
+        when(CDV3FeignClient.getCdV3SearchAccessTypeDetails(
+                anyString(), anyString(), eq(accessingGfcid), isNull(), eq(clientId)
+        )).thenThrow(boom);
+
+        // when + then
+        assertThrows(CdV3Exception.class,
+                () -> service.searchAccessTypeDetails(accessingGfcid, clientId, dealId));
+
+        verify(CDV3FeignClient, times(1)).getCdV3SearchAccessTypeDetails(
+                anyString(), anyString(), eq(accessingGfcid), isNull(), eq(clientId)
+        );
+
+        verify(amtPersistenceFeignClient, times(1)).addEventTracker(any());
+        verifyNoMoreInteractions(amtPersistenceFeignClient);
+    }
+
+    // -------------------
+    // searchLegalEntity()
+    // -------------------
+
+    @Test
+    void searchLegalEntity_success_returnsResponse_andDoesNotTrackEvent() {
+        // given
+        String gfcId = "GFCID-LE-1";
+        String clientId = "CLIENT-LE-1";
+        String dealId = "DEAL-LE-1";
+
+        SearchLegalEntityResponse expected = mock(SearchLegalEntityResponse.class);
+
+        when(CDV3FeignClient.searchLegalEntityClientType(
+                anyString(), anyString(), eq(gfcId), isNull()
+        )).thenReturn(expected);
+
+        // when
+        SearchLegalEntityResponse actual =
+                service.searchLegalEntity(gfcId, clientId, dealId);
+
+        // then
+        assertSame(expected, actual);
+
+        verify(CDV3FeignClient, times(1)).searchLegalEntityClientType(
+                anyString(), anyString(), eq(gfcId), isNull()
+        );
+        verifyNoInteractions(amtPersistenceFeignClient);
+    }
+
+    @Test
+    void searchLegalEntity_whenUnauthorized_tracksEvent_andThrowsCdV3Exception() {
+        // given
+        String gfcId = "GFCID-LE-2";
+        String clientId = "CLIENT-LE-2";
+        String dealId = "DEAL-LE-2";
+
+        FeignException.Unauthorized unauthorized = mock(FeignException.Unauthorized.class);
+
+        when(CDV3FeignClient.searchLegalEntityClientType(
+                anyString(), anyString(), eq(gfcId), isNull()
+        )).thenThrow(unauthorized);
+
+        // when + then
+        assertThrows(CdV3Exception.class,
+                () -> service.searchLegalEntity(gfcId, clientId, dealId));
+
+        verify(CDV3FeignClient, times(1)).searchLegalEntityClientType(
+                anyString(), anyString(), eq(gfcId), isNull()
+        );
+
+        verify(amtPersistenceFeignClient, times(1)).addEventTracker(any());
+        verifyNoMoreInteractions(amtPersistenceFeignClient);
+    }
+
+    @Test
+    void searchLegalEntity_whenGenericException_tracksEvent_andThrowsCdV3Exception() {
+        // given
+        String gfcId = "GFCID-LE-3";
+        String clientId = "CLIENT-LE-3";
+        String dealId = "DEAL-LE-3";
+
+        RuntimeException boom = new RuntimeException("boom");
+
+        when(CDV3FeignClient.searchLegalEntityClientType(
+                anyString(), anyString(), eq(gfcId), isNull()
+        )).thenThrow(boom);
+
+        // when + then
+        assertThrows(CdV3Exception.class,
+                () -> service.searchLegalEntity(gfcId, clientId, dealId));
+
+        verify(CDV3FeignClient, times(1)).searchLegalEntityClientType(
+                anyString(), anyString(), eq(gfcId), isNull()
+        );
+
+        verify(amtPersistenceFeignClient, times(1)).addEventTracker(any());
+        verifyNoMoreInteractions(amtPersistenceFeignClient);
+    }
+
+    // -------------------------
+    // searchClientAndAccessType()
+    // -------------------------
+
+    @Test
+    void searchClientAndAccessType_whenClientTypeIsV3_setsAccessType_andPopulatesFields() {
+        // We'll spy so we can directly control the internal calls and hit the isV3 branch
+        CdV3ServiceImpl spy = Mockito.spy(service);
+
+        String accessingGfcid = "GFCID-V3";
+        String clientId = "CLIENT-V3";
+        String dealId = "DEAL-V3";
+
+        // Deep-stub response chain: legalEntityResponse.getResponse().getClientType()
+        SearchLegalEntityResponse legalEntityResponse =
+                mock(SearchLegalEntityResponse.class, Answers.RETURNS_DEEP_STUBS);
+        when(legalEntityResponse.getResponse().getClientType())
+                .thenReturn(CdV3Service.CLIENT_TYPE_V3); // adjust if constant lives elsewhere
+
+        // Deep-stub accessTypeDetailsResponse.getResponse().getAccessType()
+        AccessTypeDetailsResponse accessTypeDetailsResponse =
+                mock(AccessTypeDetailsResponse.class, Answers.RETURNS_DEEP_STUBS);
+        when(accessTypeDetailsResponse.getResponse().getAccessType())
+                .thenReturn("FULL_ACCESS");
+
+        doReturn(legalEntityResponse)
+                .when(spy).searchLegalEntity(accessingGfcid, clientId, dealId);
+
+        doReturn(accessTypeDetailsResponse)
+                .when(spy).searchAccessTypeDetails(accessingGfcid, clientId, dealId);
+
+        // when
+        ResponseClientAndAccessTypeDTO dto =
+                spy.searchClientAndAccessType(accessingGfcid, clientId, dealId);
+
+        // then
+        assertNotNull(dto);
+        assertEquals("FULL_ACCESS", dto.getAccessType());
+        assertEquals(CdV3Service.CLIENT_TYPE_V3, dto.getClientType());
+        assertEquals(clientId, dto.getClientDefinitionId());
+        assertEquals(accessingGfcid, dto.getClientDefinitionGfcid());
+
+        verify(spy, times(1)).searchLegalEntity(accessingGfcid, clientId, dealId);
+        verify(spy, times(1)).searchAccessTypeDetails(accessingGfcid, clientId, dealId);
+    }
+
+    @Test
+    void searchClientAndAccessType_whenClientTypeIsNotV3_setsNullAccessType_andPopulatesFields() {
+        CdV3ServiceImpl spy = Mockito.spy(service);
+
+        String accessingGfcid = "GFCID-NOTV3";
+        String clientId = "CLIENT-NOTV3";
+        String dealId = "DEAL-NOTV3";
+
+        SearchLegalEntityResponse legalEntityResponse =
+                mock(SearchLegalEntityResponse.class, Answers.RETURNS_DEEP_STUBS);
+        when(legalEntityResponse.getResponse().getClientType())
+                .thenReturn("SOMETHING_ELSE");
+
+        doReturn(legalEntityResponse)
+                .when(spy).searchLegalEntity(accessingGfcid, clientId, dealId);
+
+        // when
+        ResponseClientAndAccessTypeDTO dto =
+                spy.searchClientAndAccessType(accessingGfcid, clientId, dealId);
+
+        // then
+        assertNotNull(dto);
+        assertNull(dto.getAccessType());
+        assertEquals("SOMETHING_ELSE", dto.getClientType());
+        assertEquals(clientId, dto.getClientDefinitionId());
+        assertEquals(accessingGfcid, dto.getClientDefinitionGfcid());
+
+        verify(spy, times(1)).searchLegalEntity(accessingGfcid, clientId, dealId);
+        verify(spy, never()).searchAccessTypeDetails(anyString(), anyString(), anyString());
+    }
+}
