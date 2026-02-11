@@ -1,0 +1,71 @@
+package com.citi.amt.services.api;
+
+import com.citi.amt.services.dto.cdaccesstype.ResponseClientAndAccessTypeDTO;
+import com.citi.amt.services.service.CdV3Service;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class CDV3ControllerTest {
+
+    @Mock
+    private CdV3Service cdV3Service;
+
+    @InjectMocks
+    private CDV3Controller controller;
+
+    @Test
+    void fetchClientAndAccessType_shouldReturnOkAndBodyFromService() {
+        // Arrange
+        String clientDefinitionGfcid = "gfcid-123";
+        String clientDefinitionId = "clientId-456";
+        String dealId = "deal-789";
+
+        ResponseClientAndAccessTypeDTO expected = mock(ResponseClientAndAccessTypeDTO.class);
+        when(cdV3Service.searchClientAndAccessType(clientDefinitionGfcid, clientDefinitionId, dealId))
+                .thenReturn(expected);
+
+        // Act
+        ResponseEntity<ResponseClientAndAccessTypeDTO> response =
+                controller.fetchClientAndAccessType(clientDefinitionGfcid, clientDefinitionId, dealId);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertSame(expected, response.getBody());
+
+        verify(cdV3Service, times(1))
+                .searchClientAndAccessType(clientDefinitionGfcid, clientDefinitionId, dealId);
+        verifyNoMoreInteractions(cdV3Service);
+    }
+
+    @Test
+    void fetchClientAndAccessType_shouldPropagateExceptionFromService() {
+        // Arrange
+        String clientDefinitionGfcid = "gfcid";
+        String clientDefinitionId = "clientId";
+        String dealId = "dealId";
+
+        RuntimeException ex = new RuntimeException("boom");
+        when(cdV3Service.searchClientAndAccessType(anyString(), anyString(), anyString()))
+                .thenThrow(ex);
+
+        // Act + Assert
+        RuntimeException thrown = assertThrows(RuntimeException.class,
+                () -> controller.fetchClientAndAccessType(clientDefinitionGfcid, clientDefinitionId, dealId));
+
+        assertSame(ex, thrown);
+
+        verify(cdV3Service, times(1))
+                .searchClientAndAccessType(clientDefinitionGfcid, clientDefinitionId, dealId);
+        verifyNoMoreInteractions(cdV3Service);
+    }
+}
