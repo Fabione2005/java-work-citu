@@ -1,0 +1,19 @@
+@RestController
+@RequestMapping("/amt-persistence/client-definition-action")
+public class AmtClientDefinitionActionPersistenceController {
+
+    private final AmtClientDefinitionActionPersistenceService service;
+
+    public AmtClientDefinitionActionPersistenceController(
+            AmtClientDefinitionActionPersistenceService service) {
+        this.service = service;
+    }
+
+    @PostMapping("/update-integration-status")
+    public ResponseEntity<UpdateClientDefinitionActionStatusPersistenceResponse> updateIntegrationStatus(
+            @RequestBody UpdateClientDefinitionActionStatusPersistenceRequest request) {
+
+        UpdateClientDefinitionActionStatusPersistenceResponse response = service.updateStatuses(request);
+        return ResponseEntity.ok(response);
+    }
+}
