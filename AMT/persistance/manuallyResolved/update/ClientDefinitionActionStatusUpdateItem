@@ -1,0 +1,17 @@
+public class ClientDefinitionActionStatusUpdateItem {
+
+    // WHERE
+    private String parentRequestId;
+    private String accountNumber;
+    private Long clientDefinitionId;
+    private String setupMode;
+    private String accessLevel;
+    private String operation;
+
+    // SET
+    private String cdIntegrationStatus;
+    private Boolean manuallyResolved;          // true/false -> mapear a 1/0
+    private String cdIntegrationStatusDate;    // o LocalDateTime / OffsetDateTime según formato real
+
+    // getters/setters
+}
