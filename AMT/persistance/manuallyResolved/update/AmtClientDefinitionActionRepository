@@ -1,0 +1,59 @@
+public interface AmtClientDefinitionActionRepository
+        extends JpaRepository<AmtClientDefinitionAction, Long> {
+
+    @Modifying
+    @Transactional
+    @Query(
+        value =
+            "UPDATE {h-schema}AMT_CLIENT_DEFINITION_ACTION " +
+            "SET CD_INTG_STATUS = :cdIntgStatus, " +
+            "    MANUALLY_RESOLVED = :manuallyResolved, " +
+            "    CD_INTEGRATION_DATE = :cdIntegrationDate " +
+            "WHERE PARENT_REQUEST_ID = :parentRequestId " +
+            "  AND ACCOUNT_NUMBER = :accountNumber " +
+            "  AND CLIENT_DEFINITION_ID = :clientDefinitionId " +
+            "  AND SETUP_MODE = :setupMode " +
+            "  AND ACCESS_LEVEL = :accessLevel " +
+            "  AND OPERATION = :operation",
+        nativeQuery = true
+    )
+    int updateClientDefinitionActionWithDate(
+        @Param("cdIntgStatus") String cdIntgStatus,
+        @Param("manuallyResolved") Integer manuallyResolved,
+        @Param("cdIntegrationDate") java.sql.Timestamp cdIntegrationDate,
+        @Param("parentRequestId") String parentRequestId,
+        @Param("accountNumber") String accountNumber,
+        @Param("clientDefinitionId") Long clientDefinitionId,
+        @Param("setupMode") String setupMode,
+        @Param("accessLevel") String accessLevel,
+        @Param("operation") String operation
+    );
+
+    @Modifying
+    @Transactional
+    @Query(
+        value =
+            "UPDATE {h-schema}AMT_CLIENT_DEFINITION_ACTION " +
+            "SET CD_INTG_STATUS = :cdIntgStatus, " +
+            "    MANUALLY_RESOLVED = :manuallyResolved " +
+            "WHERE PARENT_REQUEST_ID = :parentRequestId " +
+            "  AND ACCOUNT_NUMBER = :accountNumber " +
+            "  AND CLIENT_DEFINITION_ID = :clientDefinitionId " +
+            "  AND SETUP_MODE = :setupMode " +
+            "  AND ACCESS_LEVEL = :accessLevel " +
+            "  AND OPERATION = :operation",
+        nativeQuery = true
+    )
+    int updateClientDefinitionActionWithoutDate(
+        @Param("cdIntgStatus") String cdIntgStatus,
+        @Param("manuallyResolved") Integer manuallyResolved,
+        @Param("parentRequestId") String parentRequestId,
+        @Param("accountNumber") String accountNumber,
+        @Param("clientDefinitionId") Long clientDefinitionId,
+        @Param("setupMode") String setupMode,
+        @Param("accessLevel") String accessLevel,
+        @Param("operation") String operation
+    );
+
+    // tu SELECT existente queda igual
+}
