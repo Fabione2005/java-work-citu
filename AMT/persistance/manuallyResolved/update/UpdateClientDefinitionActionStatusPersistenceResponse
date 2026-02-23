@@ -1,0 +1,11 @@
+public class UpdateClientDefinitionActionStatusPersistenceResponse {
+
+    private int requested;
+    private int updated;
+    private int failed;
+    private int notFound;
+    private boolean partialSuccess;
+    private List<String> failureDetails;
+
+    // getters/setters / builder
+}
