@@ -1,0 +1,6 @@
+public class UpdateClientDefinitionActionStatusPersistenceRequest {
+
+    private List<ClientDefinitionActionStatusUpdateItem> clientDefinitionActionDetails;
+
+    // getters/setters
+}
