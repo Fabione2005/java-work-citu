@@ -1,0 +1,143 @@
+@Service
+public class AmtClientDefinitionActionPersistenceService {
+
+    private static final org.slf4j.Logger log =
+            org.slf4j.LoggerFactory.getLogger(AmtClientDefinitionActionPersistenceService.class);
+
+    private final AmtClientDefinitionActionRepository repository;
+
+    public AmtClientDefinitionActionPersistenceService(AmtClientDefinitionActionRepository repository) {
+        this.repository = repository;
+    }
+
+    public UpdateClientDefinitionActionStatusPersistenceResponse updateStatuses(
+            UpdateClientDefinitionActionStatusPersistenceRequest request) {
+
+        UpdateClientDefinitionActionStatusPersistenceResponse response =
+                new UpdateClientDefinitionActionStatusPersistenceResponse();
+
+        List<String> failureDetails = new ArrayList<>();
+
+        if (request == null || request.getClientDefinitionActionDetails() == null
+                || request.getClientDefinitionActionDetails().isEmpty()) {
+            response.setRequested(0);
+            response.setUpdated(0);
+            response.setFailed(0);
+            response.setNotFound(0);
+            response.setPartialSuccess(false);
+            response.setFailureDetails(Collections.emptyList());
+            return response;
+        }
+
+        int requested = request.getClientDefinitionActionDetails().size();
+        int updated = 0;
+        int failed = 0;
+        int notFound = 0;
+
+        for (ClientDefinitionActionStatusUpdateItem item : request.getClientDefinitionActionDetails()) {
+            try {
+                Integer manuallyResolvedDb = Boolean.TRUE.equals(item.getManuallyResolved()) ? 1 : 0;
+
+                int rows;
+                if (isBlank(item.getCdIntegrationStatusDate())) {
+                    rows = repository.updateClientDefinitionActionWithoutDate(
+                            item.getCdIntegrationStatus(),
+                            manuallyResolvedDb,
+                            item.getParentRequestId(),
+                            item.getAccountNumber(),
+                            item.getClientDefinitionId(),
+                            item.getSetupMode(),
+                            item.getAccessLevel(),
+                            item.getOperation()
+                    );
+                } else {
+                    java.sql.Timestamp ts = parseToTimestamp(item.getCdIntegrationStatusDate());
+
+                    rows = repository.updateClientDefinitionActionWithDate(
+                            item.getCdIntegrationStatus(),
+                            manuallyResolvedDb,
+                            ts,
+                            item.getParentRequestId(),
+                            item.getAccountNumber(),
+                            item.getClientDefinitionId(),
+                            item.getSetupMode(),
+                            item.getAccessLevel(),
+                            item.getOperation()
+                    );
+                }
+
+                if (rows > 0) {
+                    updated += rows;
+                } else {
+                    // No lo tratamos como error de negocio, solo log
+                    notFound++;
+                    log.error("No rows updated for item: {}", buildItemKey(item));
+                    failureDetails.add(buildItemKey(item) + " -> 0 rows updated");
+                }
+
+            } catch (org.springframework.dao.DataAccessException dae) {
+                // Excepción de DB / conexión / timeout / SQL fatal => propagar error
+                log.error("Database error updating item: {}", buildItemKey(item), dae);
+                throw dae;
+
+            } catch (Exception ex) {
+                // Cualquier otro error por item (parse fecha, dato raro, etc.) => log y continuar
+                failed++;
+                log.error("Error updating item: {}", buildItemKey(item), ex);
+                failureDetails.add(buildItemKey(item) + " -> " + ex.getMessage());
+            }
+        }
+
+        response.setRequested(requested);
+        response.setUpdated(updated);
+        response.setFailed(failed);
+        response.setNotFound(notFound);
+        response.setPartialSuccess((failed > 0 || notFound > 0) && updated > 0);
+        response.setFailureDetails(failureDetails);
+
+        return response;
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
+    }
+
+    private java.sql.Timestamp parseToTimestamp(String raw) {
+        try {
+            // Caso ISO con Z, ej: 2026-02-23T18:00:00Z
+            if (raw.endsWith("Z")) {
+                return java.sql.Timestamp.from(java.time.Instant.parse(raw));
+            }
+
+            // Caso ISO local, ej: 2026-02-23T18:00:00
+            try {
+                return java.sql.Timestamp.valueOf(
+                        java.time.LocalDateTime.parse(raw, java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+                );
+            } catch (Exception ignored) {
+                // Fallback: yyyy-MM-dd HH:mm:ss
+                java.time.format.DateTimeFormatter formatter =
+                        java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                return java.sql.Timestamp.valueOf(java.time.LocalDateTime.parse(raw, formatter));
+            }
+
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid cdIntegrationStatusDate format: " + raw, e);
+        }
+    }
+
+    private String buildItemKey(ClientDefinitionActionStatusUpdateItem item) {
+        if (item == null) {
+            return "null-item";
+        }
+        return String.format(
+                "[parentRequestId=%s, accountNumber=%s, clientDefinitionId=%s, setupMode=%s, accessLevel=%s, operation=%s]",
+                item.getParentRequestId(),
+                item.getAccountNumber(),
+                item.getClientDefinitionId(),
+                item.getSetupMode(),
+                item.getAccessLevel(),
+                item.getOperation()
+        );
+    }
+}
