@@ -1,0 +1,63 @@
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.Data;
+
+import java.sql.Timestamp;
+
+@Entity
+@Table(name = "AMT_CLIENT_DEFINITION_ACTION")
+@Data
+public class AmtClientDefinitionAction {
+
+    @Id
+    @Column(name = "ID")
+    private Long id;
+
+    // WHERE keys (para ubicar el registro que actualizas)
+    @Column(name = "PARENT_REQUEST_ID")
+    private String parentRequestId;
+
+    @Column(name = "ACCOUNT_NUMBER")
+    private String accountNumber;
+
+    @Column(name = "CLIENT_DEFINITION_ID")
+    private Long clientDefinitionId;
+
+    @Column(name = "SETUP_MODE")
+    private String setupMode;
+
+    @Column(name = "ACCESS_LEVEL")
+    private String accessLevel;
+
+    @Column(name = "OPERATION")
+    private String operation;
+
+    // Campos útiles de contexto
+    @Column(name = "CLIENT_DEFINITION_NAME")
+    private String clientDefinitionName;
+
+    @Column(name = "IS_CD_V3")
+    private String isCdV3; // en DB es VARCHAR2(1 CHAR), ej: 'Y'/'N'
+
+    // Campos que actualiza tu requerimiento (SET)
+    @Column(name = "CD_INTG_STATUS")
+    private String cdIntgStatus;
+
+    @Column(name = "MANUALLY_RESOLVED")
+    private Integer manuallyResolved; // NUMBER(1,0) -> 0/1
+
+    @Column(name = "CD_INTEGRATION_DATE")
+    private Timestamp cdIntegrationDate;
+
+    // Otros campos de la tabla (opcional pero útiles para debug)
+    @Column(name = "CD_VALIDATION_STATUS")
+    private String cdValidationStatus;
+
+    @Column(name = "CREATED_DATE")
+    private Timestamp createdDate;
+
+    @Column(name = "CREATED_BY")
+    private String createdBy;
+}
