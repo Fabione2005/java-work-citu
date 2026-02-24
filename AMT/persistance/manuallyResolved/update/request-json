@@ -1,0 +1,37 @@
+{
+  "clientDefinitionActionDetails": [
+    {
+      "parentRequestId": "PR-20260224-001",
+      "accountNumber": "1234567890",
+      "clientDefinitionId": 1001,
+      "setupMode": "AUTO",
+      "accessLevel": "FULL_ACCESS",
+      "operation": "CREATE",
+      "cdIntegrationStatus": "FAILED",
+      "manuallyResolved": true,
+      "cdIntegrationStatusDate": "2026-02-24T18:30:00"
+    },
+    {
+      "parentRequestId": "PR-20260224-001",
+      "accountNumber": "1234567891",
+      "clientDefinitionId": 1002,
+      "setupMode": "MANUAL",
+      "accessLevel": "READ_ONLY",
+      "operation": "UPDATE",
+      "cdIntegrationStatus": "RETRY",
+      "manuallyResolved": true,
+      "cdIntegrationStatusDate": ""
+    },
+    {
+      "parentRequestId": "PR-20260224-002",
+      "accountNumber": "1234567892",
+      "clientDefinitionId": 1003,
+      "setupMode": "AUTO",
+      "accessLevel": "LIMITED",
+      "operation": "DELETE",
+      "cdIntegrationStatus": "SUCCESS",
+      "manuallyResolved": false,
+      "cdIntegrationStatusDate": "2026-02-24 19:15:00"
+    }
+  ]
+}
