@@ -1,0 +1,27 @@
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
+
+public class DateFormatUtil {
+
+  private static final DateTimeFormatter ORACLE_BASE =
+      DateTimeFormatter.ofPattern("dd-MMM-yy hh.mm.ss", Locale.ENGLISH);
+
+  public static String toOracleLike(Timestamp ts) {
+    if (ts == null) return null;
+
+    LocalDateTime ldt = ts.toLocalDateTime();
+
+    // base: 26-JUL-23 02.17.59
+    String base = ldt.format(ORACLE_BASE);
+
+    // nanos: 9 dígitos (FF9)
+    String nanos = String.format("%09d", ts.getNanos());
+
+    // AM/PM
+    String ampm = ldt.format(DateTimeFormatter.ofPattern("a", Locale.ENGLISH));
+
+    return base + "." + nanos + " " + ampm;
+  }
+}
