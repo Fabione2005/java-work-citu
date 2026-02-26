@@ -3,8 +3,6 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
-private static final DateTimeFormatter ORACLE_TS =
-    DateTimeFormatter.ofPattern("dd-MMM-yy hh.mm.ss.nnnnnnnnn a", Locale.ENGLISH);
 
 private static final DateTimeFormatter ISO_LOCAL =
     DateTimeFormatter.ISO_LOCAL_DATE_TIME;
@@ -12,14 +10,27 @@ private static final DateTimeFormatter ISO_LOCAL =
 private static final DateTimeFormatter SPACE_FMT =
     DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-import java.sql.Timestamp;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Locale;
 
-private static final DateTimeFormatter ORACLE_TS =
-        DateTimeFormatter.ofPattern("dd-MMM-yy hh.mm.ss.nnnnnnnnn a", Locale.ENGLISH);
+private static final DateTimeFormatter ORACLE_TS_1 =
+    DateTimeFormatter.ofPattern("dd-MMM-yy hh.mm.ss.nnnnnnnnn a", Locale.ENGLISH);
+
+private static final DateTimeFormatter ORACLE_TS_2 =
+    DateTimeFormatter.ofPattern("dd-MMM-yy hh.mm.ss.SSSSSSSSS a", Locale.ENGLISH);
+
+private static Timestamp tryParseOracle(String raw) {
+    String v = raw.trim().replaceAll("\\s+", " ").toUpperCase(Locale.ENGLISH);
+
+    try {
+        return Timestamp.valueOf(LocalDateTime.parse(v, ORACLE_TS_1));
+    } catch (Exception ignored) { }
+
+    try {
+        return Timestamp.valueOf(LocalDateTime.parse(v, ORACLE_TS_2));
+    } catch (Exception ignored) { }
+
+    return null;
+}
+
 
 private Timestamp parseToTimestamp(String raw) {
     try {
