@@ -1,0 +1,13 @@
+Support needed – ACCOUNTS-114741 blocker
+
+
+Hi Team,
+
+I am currently blocked on story ACCOUNTS-114741 as I am waiting for the pending changes from the previous implementation to be pushed to the corresponding branch in the amtpersistence service.
+
+I need those changes because they include the table/query context required to complete the implementation on my side. I have been highlighting this dependency during the DSM calls since last Monday, but the blocker is still preventing further progress.
+
+As the sprint is ending next week, I wanted to raise this more explicitly and ask for your support in resolving it soon. Otherwise, we may need to move the story into the next sprint.
+
+Thanks,
+Fabio
