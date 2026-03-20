@@ -1,0 +1,22 @@
+Hi team, I’m reviewing the query logic for this development and I’d like to confirm the business rule before I continue.
+
+From what I see, the previous implementation for the status seems to consider a record as valid when:
+
+CD_INTG_STATUS IN ('MANUALLY_ACTIVATED', 'ACTIVATED') OR MANUALLY_RESOLVED = 1
+
+But the later attempt for the failed accounts list seems to use a different condition:
+
+MANUALLY_RESOLVED = 0 AND CD_INTG_STATUS = 'ERROR'
+
+Could you please confirm the expected rule for each requirement?
+
+For the status, what is the exact condition that determines whether an account is considered valid?
+
+For the failed accounts list, should it return:
+
+all accounts that do not satisfy the status condition,
+or
+
+only accounts with CD_INTG_STATUS = 'ERROR' and MANUALLY_RESOLVED = 0?
+
+I just want to make sure both outputs follow the intended business logic before I proceed with the implementation.
