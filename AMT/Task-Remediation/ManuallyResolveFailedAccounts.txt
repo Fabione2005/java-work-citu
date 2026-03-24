@@ -1,0 +1,24 @@
+Query para la base de datos:
+
+SELECT DISTINCT account_number
+FROM AMT_CLIENT_DEFINITION_ACTION
+WHERE account_number IN ('1001', '1002', '1003')
+  AND parent_request = 'ABC123'
+  AND MANUALLY_RESOLVED = 0
+  AND CD_INTG_STATUS = 'ERROR';
+
+
+Query para el Java:
+
+@Query(value = """
+    SELECT DISTINCT account_number
+    FROM AMT_CLIENT_DEFINITION_ACTION
+    WHERE account_number IN (:accountNumbers)
+      AND parent_request = :parentRequest
+      AND MANUALLY_RESOLVED = 0
+      AND CD_INTG_STATUS = 'ERROR'
+    """, nativeQuery = true)
+List<String> findFailedAccountNumbers(
+        @Param("accountNumbers") List<String> accountNumbers,
+        @Param("parentRequest") String parentRequest
+);
