@@ -22,3 +22,39 @@ List<String> findFailedAccountNumbers(
         @Param("accountNumbers") List<String> accountNumbers,
         @Param("parentRequest") String parentRequest
 );
+
+
+INSERT INTO AMT_CLIENT_DEFINITION_ACTION
+(
+    ID,
+    PARENT_REQUEST_ID,
+    ACCOUNT_NUMBER,
+    CLIENT_DEFINITION_ID,
+    CLIENT_DEFINITION_NAME,
+    SETUP_MODE,
+    ACCESS_LEVEL,
+    OPERATION,
+    CD_INTG_STATUS,
+    MANUALLY_RESOLVED,
+    CREATED_DATE,
+    CREATED_BY,
+    CD_VALIDATION_STATUS,
+    CD_INTEGRATION_DATE
+)
+VALUES
+(
+    900002,
+    'TEST_PR_001',
+    '900900002',
+    1000403596,
+    'LIQUIDITY STR CHAN NA',
+    'Automated',
+    'DMANDATETI',
+    'ADD',
+    'ERROR',
+    0,
+    SYSTIMESTAMP,
+    'TEST_USER',
+    NULL,
+    SYSTIMESTAMP
+);
