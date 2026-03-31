@@ -23,16 +23,16 @@ public class AccountDetailsService {
     }
 
     private AccountDetailsDto mapRowToDto(Object[] row) {
-        return AccountDetailsDto.builder()
-                .accountNo(getString(row, 5))
-                .accountName(getString(row, 6))
-                .accountBranchCode(getString(row, 9))
-                .accountBranchName(getString(row, 10))
-                .accountDomicile(getString(row, 11))
-                .accountGfcId(getString(row, 12))
-                .accountLegalEntity(getString(row, 13))
-                .build();
-    }
+    return AccountDetailsDto.builder()
+            .accountNo(getString(row, IDX_ACCOUNT_NO))
+            .accountName(getString(row, IDX_ACCOUNT_NAME))
+            .accountBranchCode(getString(row, IDX_ACCOUNT_BRANCH_CODE))
+            .accountBranchName(getString(row, IDX_ACCOUNT_BRANCH_NAME))
+            .accountDomicile(getString(row, IDX_ACCOUNT_DOMICILE))
+            .accountGfcId(getString(row, IDX_ACCOUNT_GFC_ID))
+            .accountLegalEntity(getString(row, IDX_ACCOUNT_LEGAL_ENTITY))
+            .build();
+}
 
     private String buildRequestIdsCsv(List<String> requestIds) {
         if (requestIds == null || requestIds.isEmpty()) {
