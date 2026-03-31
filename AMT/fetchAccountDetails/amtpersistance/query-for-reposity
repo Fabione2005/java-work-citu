@@ -1,0 +1,59 @@
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
+
+public interface AmtAccountRequestRepository extends JpaRepository<AmtAccountRequestEntity, Long> {
+
+    @Query(value =
+            "SELECT DISTINCT " +
+            "    A.ACCOUNT_REQUEST_ID AS accountRequestId, " +
+            "    A.ACCOUNT_ID AS accountId, " +
+            "    R.REQUEST_ID AS requestId, " +
+            "    R.PARENT_REQUEST_ID AS parentRequestId, " +
+            "    P.SUPER_REQUEST_ID AS superRequestId, " +
+            "    A.ACCOUNT_NUMBER AS accountNo, " +
+            "    COALESCE(A.NEW_NAME, A.EXISTING_NAME) AS accountName, " +
+            "    A.EXISTING_NAME AS existingName, " +
+            "    A.NEW_NAME AS newName, " +
+            "    A.BRANCH_CODE AS accountBranchCode, " +
+            "    NULL AS accountBranchName, " +
+            "    COALESCE(A.ACCOUNT_DOMICILE_COUNTRY_CODE, R.ACCT_DOMICILE_COUNTRY_CODE) AS accountDomicile, " +
+            "    COALESCE(A.GFC_ID, P.GFP_ID) AS accountGfcId, " +
+            "    COALESCE(L.LEGAL_ENTITY_NAME, R.LEGAL_ENTITY_NAME, P.PARENT_LEGAL_ENTITY_NAME) AS accountLegalEntity, " +
+            "    L.LEGAL_ENTITY_NAME AS legalEntityNameFromTable, " +
+            "    R.LEGAL_ENTITY_NAME AS legalEntityNameFromRequest, " +
+            "    P.PARENT_LEGAL_ENTITY_NAME AS legalEntityNameFromParent, " +
+            "    A.REGION_CODE AS accountRegionCode, " +
+            "    R.REGION_CODE AS requestRegionCode, " +
+            "    A.ACCOUNT_STATUS AS accountStatus, " +
+            "    A.ACCOUNT_SOURCE AS accountSource, " +
+            "    A.ACCOUNT_CATEGORY AS accountCategory, " +
+            "    A.LOCATION AS accountLocation, " +
+            "    A.ACCOUNT_CURRENCY_CODE AS accountCurrencyCode, " +
+            "    A.IS_BACS_ACCOUNT AS isBacsAccount, " +
+            "    A.IS_EBAM_ACCOUNT AS isEbamAccount, " +
+            "    R.STATUS_CODE AS requestStatusCode, " +
+            "    R.SUB_STATUS_CODE AS requestSubStatusCode, " +
+            "    P.STATUS_CODE AS parentRequestStatusCode " +
+            "FROM {h-schema}AMT_ACCOUNT_REQUEST A " +
+            "INNER JOIN {h-schema}AMT_REQUEST R " +
+            "        ON R.REQUEST_ID = A.REQUEST_ID " +
+            "LEFT JOIN {h-schema}AMT_PARENT_REQUEST P " +
+            "       ON P.PARENT_REQUEST_ID = R.PARENT_REQUEST_ID " +
+            "LEFT JOIN {h-schema}LEGAL_ENTITY L " +
+            "       ON L.GFC_ID = A.GFC_ID " +
+            "WHERE ( :parentRequestId IS NOT NULL OR :requestIdsCsv IS NOT NULL ) " +
+            "  AND ( :parentRequestId IS NULL OR R.PARENT_REQUEST_ID = :parentRequestId ) " +
+            "  AND ( :requestIdsCsv IS NULL OR R.REQUEST_ID IN ( " +
+            "        SELECT TRIM(REGEXP_SUBSTR(:requestIdsCsv, '[^,]+', 1, LEVEL)) " +
+            "        FROM DUAL " +
+            "        CONNECT BY REGEXP_SUBSTR(:requestIdsCsv, '[^,]+', 1, LEVEL) IS NOT NULL " +
+            "  )) " +
+            "ORDER BY A.ACCOUNT_NUMBER",
+            nativeQuery = true)
+    List<AccountDetailsProjection> retrieveAccountDetails(
+            @Param("parentRequestId") String parentRequestId,
+            @Param("requestIdsCsv") String requestIdsCsv);
+}
