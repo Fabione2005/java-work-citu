@@ -1,10 +1,3 @@
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
 @Service
 @RequiredArgsConstructor
 public class AccountDetailsService {
@@ -17,11 +10,11 @@ public class AccountDetailsService {
 
         String requestIdsCsv = buildRequestIdsCsv(requestIds);
 
-        List<AccountDetailsProjection> rows =
-                amtAccountRequestRepository.retrieveAccountDetails(parentRequestId, requestIdsCsv);
+        List<Object[]> rows = amtAccountRequestRepository
+                .retrieveAccountDetails(parentRequestId, requestIdsCsv);
 
         List<AccountDetailsDto> accountsDetails = rows.stream()
-                .map(this::mapToDto)
+                .map(this::mapRowToDto)
                 .collect(Collectors.toList());
 
         return AccountDetailsResponseDto.builder()
@@ -29,15 +22,15 @@ public class AccountDetailsService {
                 .build();
     }
 
-    private AccountDetailsDto mapToDto(AccountDetailsProjection row) {
+    private AccountDetailsDto mapRowToDto(Object[] row) {
         return AccountDetailsDto.builder()
-                .accountNo(row.getAccountNo())
-                .accountName(row.getAccountName())
-                .accountBranchCode(row.getAccountBranchCode())
-                .accountBranchName(row.getAccountBranchName()) // por ahora vendrá null
-                .accountDomicile(row.getAccountDomicile())
-                .accountGfcId(row.getAccountGfcId())
-                .accountLegalEntity(row.getAccountLegalEntity())
+                .accountNo(getString(row, 5))
+                .accountName(getString(row, 6))
+                .accountBranchCode(getString(row, 9))
+                .accountBranchName(getString(row, 10))
+                .accountDomicile(getString(row, 11))
+                .accountGfcId(getString(row, 12))
+                .accountLegalEntity(getString(row, 13))
                 .build();
     }
 
@@ -53,5 +46,12 @@ public class AccountDetailsService {
                 .collect(Collectors.joining(","));
 
         return csv.isEmpty() ? null : csv;
+    }
+
+    private String getString(Object[] row, int index) {
+        if (row == null || index >= row.length || row[index] == null) {
+            return null;
+        }
+        return String.valueOf(row[index]);
     }
 }
