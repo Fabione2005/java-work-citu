@@ -1,0 +1,62 @@
+Hi team,
+
+I am currently working on the new endpoint for the account details response and, while reviewing the database tables, I found a few points that I would like to confirm in order to complete the query correctly.
+
+Could you please help clarify the following:
+
+1. **accountBranchName**
+   I could identify `BRANCH_CODE`, but I could not find a corresponding branch name field in the tables reviewed (`AMT_ACCOUNT_REQUEST`, `AMT_REQUEST`, `AMT_PARENT_REQUEST`, `LEGAL_ENTITY`).
+   Could you please confirm where `accountBranchName` should come from?
+
+   * Is there another reference/catalog table that should be used?
+   * Should it be derived from `BRANCH_CODE`?
+   * Or is it acceptable to return it as null?
+
+2. **accountName**
+   In `AMT_ACCOUNT_REQUEST`, I found both `EXISTING_NAME` and `NEW_NAME`.
+   Could you please confirm which one should be returned in the response?
+
+   * Always `NEW_NAME`
+   * Always `EXISTING_NAME`
+   * Or `NEW_NAME` first, and if null then `EXISTING_NAME`
+
+3. **accountDomicile**
+   I found two possible sources:
+
+   * `AMT_ACCOUNT_REQUEST.ACCOUNT_DOMICILE_COUNTRY_CODE`
+   * `AMT_REQUEST.ACCT_DOMICILE_COUNTRY_CODE`
+     Could you please confirm which field should be used, and whether one should take priority over the other?
+
+4. **accountLegalEntity**
+   I found two possible sources for this value:
+
+   * `LEGAL_ENTITY.LEGAL_ENTITY_NAME` using `GFC_ID`
+   * `AMT_REQUEST.LEGAL_ENTITY_NAME`
+     Could you please confirm which one is the expected source for the endpoint response?
+
+5. **accountGfcId**
+   I found `GFC_ID` in `AMT_ACCOUNT_REQUEST`, but there are also related fields such as `GFP_ID` in other tables.
+   Could you please confirm which field should be returned as `accountGfcId`?
+
+6. **Filter logic for Request IDs and Parent Request ID**
+   The input specification includes both:
+
+   * `Request IDs []`
+   * `Parent Request ID`
+     Could you please confirm the expected filtering behavior?
+   * If both are provided, should the query apply both filters?
+   * Or should it return results matching either one?
+
+7. **Expected result granularity / duplicates**
+   Could you please confirm whether the response should return:
+
+   * one row per account
+   * or one row per request/account combination
+     Also, should duplicate accounts be removed from the final response?
+
+8. **Additional business filters**
+   Please confirm whether any additional filtering is expected based on status or account flags (for example active/completed requests, EBAM/BACS flags, etc.).
+
+If possible, it would be very helpful to have one sample input and the expected output for validation.
+
+Thanks in advance.
