@@ -1,0 +1,40 @@
+public interface AccountDetailsProjection {
+
+    String getAccountRequestId();
+    String getAccountId();
+    String getRequestId();
+    String getParentRequestId();
+    String getSuperRequestId();
+
+    String getAccountNo();
+    String getAccountName();
+    String getExistingName();
+    String getNewName();
+
+    String getAccountBranchCode();
+    String getAccountBranchName();
+
+    String getAccountDomicile();
+    String getAccountGfcId();
+    String getAccountLegalEntity();
+
+    String getLegalEntityNameFromTable();
+    String getLegalEntityNameFromRequest();
+    String getLegalEntityNameFromParent();
+
+    String getAccountRegionCode();
+    String getRequestRegionCode();
+
+    String getAccountStatus();
+    String getAccountSource();
+    String getAccountCategory();
+    String getAccountLocation();
+    String getAccountCurrencyCode();
+
+    String getIsBacsAccount();
+    String getIsEbamAccount();
+
+    String getRequestStatusCode();
+    String getRequestSubStatusCode();
+    String getParentRequestStatusCode();
+}
