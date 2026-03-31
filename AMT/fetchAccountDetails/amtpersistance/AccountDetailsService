@@ -1,0 +1,57 @@
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class AccountDetailsService {
+
+    private final AmtAccountRequestRepository amtAccountRequestRepository;
+
+    public AccountDetailsResponseDto retrieveAccountDetails(
+            String parentRequestId,
+            List<String> requestIds) {
+
+        String requestIdsCsv = buildRequestIdsCsv(requestIds);
+
+        List<AccountDetailsProjection> rows =
+                amtAccountRequestRepository.retrieveAccountDetails(parentRequestId, requestIdsCsv);
+
+        List<AccountDetailsDto> accountsDetails = rows.stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+
+        return AccountDetailsResponseDto.builder()
+                .accountsDetails(accountsDetails)
+                .build();
+    }
+
+    private AccountDetailsDto mapToDto(AccountDetailsProjection row) {
+        return AccountDetailsDto.builder()
+                .accountNo(row.getAccountNo())
+                .accountName(row.getAccountName())
+                .accountBranchCode(row.getAccountBranchCode())
+                .accountBranchName(row.getAccountBranchName()) // por ahora vendrá null
+                .accountDomicile(row.getAccountDomicile())
+                .accountGfcId(row.getAccountGfcId())
+                .accountLegalEntity(row.getAccountLegalEntity())
+                .build();
+    }
+
+    private String buildRequestIdsCsv(List<String> requestIds) {
+        if (requestIds == null || requestIds.isEmpty()) {
+            return null;
+        }
+
+        String csv = requestIds.stream()
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(value -> !value.isEmpty())
+                .collect(Collectors.joining(","));
+
+        return csv.isEmpty() ? null : csv;
+    }
+}
