@@ -1,0 +1,55 @@
+Hi team,
+
+I have completed the technical implementation of the account details endpoint and validated it successfully with existing database records using both `parentRequestId` and `requestId/requestIds`.
+
+At this point, I would like to confirm a few remaining functional details to ensure the response matches the expected business behavior:
+
+1. **accountName**
+   The current implementation returns `NEW_NAME` when available, otherwise `EXISTING_NAME`.
+   Could you please confirm if this is the expected logic, or if the response should always return only one specific field?
+
+2. **accountLegalEntity**
+   The current implementation uses a fallback across the available sources:
+
+   * `LEGAL_ENTITY.LEGAL_ENTITY_NAME`
+   * `AMT_REQUEST.LEGAL_ENTITY_NAME`
+   * `AMT_PARENT_REQUEST.PARENT_LEGAL_ENTITY_NAME`
+     Could you please confirm which source should be considered the official one for the endpoint response?
+
+3. **accountGfcId**
+   The current implementation uses the available values from `AMT_ACCOUNT_REQUEST.GFC_ID` and falls back to `AMT_PARENT_REQUEST.GFP_ID` when needed.
+   Could you please confirm whether this is correct, and which field should be returned as `accountGfcId` from a business perspective?
+
+4. **Filter behavior when both inputs are provided**
+   If both `parentRequestId` and `requestIds` are sent in the request, should the endpoint:
+
+   * apply both filters together,
+   * or return results matching either one?
+
+5. **Request parameter contract**
+   The original specification mentions `Request IDs []`.
+   Could you please confirm whether the final contract should support:
+
+   * a single `requestId`,
+   * or a list `requestIds[]`?
+
+6. **Expected behavior when no data is found**
+   If no matching records are found, is the expected behavior to return an empty `accountsDetails` list?
+
+7. **Duplicate handling / result granularity**
+   Please confirm whether the expected response should return:
+
+   * one row per account,
+   * or one row per request/account combination.
+     Also, should duplicate accounts be removed from the final response?
+
+8. **accountBranchName format**
+   I was able to resolve the branch name from the branch lookup view.
+   Please confirm whether the response should return:
+
+   * only the branch name (for example: `Austria - Vienna`)
+   * or name + code (for example: `Austria - Vienna (490)`)
+
+If possible, it would also be very helpful to have one official sample input and expected output for final validation.
+
+Thanks.
