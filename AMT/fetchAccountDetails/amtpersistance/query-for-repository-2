@@ -1,0 +1,53 @@
+@Query(value =
+        "SELECT DISTINCT " +
+        "    A.ACCOUNT_REQUEST_ID, " +
+        "    A.ACCOUNT_ID, " +
+        "    R.REQUEST_ID, " +
+        "    R.PARENT_REQUEST_ID, " +
+        "    P.SUPER_REQUEST_ID, " +
+        "    A.ACCOUNT_NUMBER, " +
+        "    COALESCE(A.NEW_NAME, A.EXISTING_NAME), " +
+        "    A.EXISTING_NAME, " +
+        "    A.NEW_NAME, " +
+        "    A.BRANCH_CODE, " +
+        "    RE.STR1, " +
+        "    COALESCE(A.ACCOUNT_DOMICILE_COUNTRY_CODE, R.ACCT_DOMICILE_COUNTRY_CODE), " +
+        "    COALESCE(A.GFC_ID, P.GFP_ID), " +
+        "    NVL(L.LEGAL_ENTITY_NAME, NVL(R.LEGAL_ENTITY_NAME, P.PARENT_LEGAL_ENTITY_NAME)), " +
+        "    L.LEGAL_ENTITY_NAME, " +
+        "    R.LEGAL_ENTITY_NAME, " +
+        "    P.PARENT_LEGAL_ENTITY_NAME, " +
+        "    A.REGION_CODE, " +
+        "    R.REGION_CODE, " +
+        "    A.ACCOUNT_STATUS, " +
+        "    A.ACCOUNT_SOURCE, " +
+        "    A.ACCOUNT_CATEGORY, " +
+        "    A.LOCATION, " +
+        "    A.ACCOUNT_CURRENCY_CODE, " +
+        "    A.IS_BACS_ACCOUNT, " +
+        "    A.IS_EBAM_ACCOUNT, " +
+        "    R.STATUS_CODE, " +
+        "    R.SUB_STATUS_CODE, " +
+        "    P.STATUS_CODE " +
+        "FROM {h-schema}AMT_ACCOUNT_REQUEST A " +
+        "INNER JOIN {h-schema}AMT_REQUEST R " +
+        "        ON R.REQUEST_ID = A.REQUEST_ID " +
+        "LEFT JOIN {h-schema}AMT_PARENT_REQUEST P " +
+        "       ON P.PARENT_REQUEST_ID = R.PARENT_REQUEST_ID " +
+        "LEFT JOIN {h-schema}LEGAL_ENTITY L " +
+        "       ON L.GFC_ID = A.GFC_ID " +
+        "LEFT JOIN {h-schema}VW_AMT_REFS_BRANCHCODESLOOKUP RE " +
+        "       ON RE.STR2 = A.BRANCH_CODE " +
+        "      AND RE.STATUS = 1 " +
+        "WHERE ( :parentRequestId IS NOT NULL OR :requestIdsCsv IS NOT NULL ) " +
+        "  AND ( :parentRequestId IS NULL OR R.PARENT_REQUEST_ID = :parentRequestId ) " +
+        "  AND ( :requestIdsCsv IS NULL OR R.REQUEST_ID IN ( " +
+        "        SELECT TRIM(REGEXP_SUBSTR(:requestIdsCsv, '[^,]+', 1, LEVEL)) " +
+        "        FROM DUAL " +
+        "        CONNECT BY REGEXP_SUBSTR(:requestIdsCsv, '[^,]+', 1, LEVEL) IS NOT NULL " +
+        "  )) " +
+        "ORDER BY A.ACCOUNT_NUMBER",
+        nativeQuery = true)
+List<Object[]> retrieveAccountDetails(
+        @Param("parentRequestId") String parentRequestId,
+        @Param("requestIdsCsv") String requestIdsCsv);
