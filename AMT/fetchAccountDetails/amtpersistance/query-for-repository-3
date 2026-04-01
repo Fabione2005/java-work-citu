@@ -1,0 +1,27 @@
+@Query(value =
+        "SELECT DISTINCT " +
+        "    A.ACCOUNT_NUMBER, " +
+        "    NVL(A.NEW_NAME, A.EXISTING_NAME), " +
+        "    A.BRANCH_CODE, " +
+        "    RE.STR1, " +
+        "    NVL(A.ACCOUNT_DOMICILE_COUNTRY_CODE, R.ACCT_DOMICILE_COUNTRY_CODE), " +
+        "    A.GFC_ID, " +
+        "    R.LEGAL_ENTITY_NAME " +
+        "FROM {h-schema}AMT_ACCOUNT_REQUEST A " +
+        "INNER JOIN {h-schema}AMT_REQUEST R " +
+        "        ON R.REQUEST_ID = A.REQUEST_ID " +
+        "LEFT JOIN {h-schema}VW_AMT_REFS_BRANCHCODESLOOKUP RE " +
+        "       ON RE.STR2 = A.BRANCH_CODE " +
+        "      AND RE.STATUS = 1 " +
+        "WHERE ( :parentRequestId IS NOT NULL OR :requestIdsCsv IS NOT NULL ) " +
+        "  AND ( :parentRequestId IS NULL OR R.PARENT_REQUEST_ID = :parentRequestId ) " +
+        "  AND ( :requestIdsCsv IS NULL OR R.REQUEST_ID IN ( " +
+        "        SELECT TRIM(REGEXP_SUBSTR(:requestIdsCsv, '[^,]+', 1, LEVEL)) " +
+        "        FROM DUAL " +
+        "        CONNECT BY REGEXP_SUBSTR(:requestIdsCsv, '[^,]+', 1, LEVEL) IS NOT NULL " +
+        "  )) " +
+        "ORDER BY A.ACCOUNT_NUMBER",
+        nativeQuery = true)
+List<Object[]> retrieveAccountDetails(
+        @Param("parentRequestId") String parentRequestId,
+        @Param("requestIdsCsv") String requestIdsCsv);
