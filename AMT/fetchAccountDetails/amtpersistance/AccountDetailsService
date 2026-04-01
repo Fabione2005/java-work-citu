@@ -2,13 +2,13 @@
 @RequiredArgsConstructor
 public class AccountDetailsService {
 
-    private static final int IDX_ACCOUNT_NO = 5;
-    private static final int IDX_ACCOUNT_NAME = 6;
-    private static final int IDX_ACCOUNT_BRANCH_CODE = 9;
-    private static final int IDX_ACCOUNT_BRANCH_NAME = 10;
-    private static final int IDX_ACCOUNT_DOMICILE = 11;
-    private static final int IDX_ACCOUNT_GFC_ID = 12;
-    private static final int IDX_ACCOUNT_LEGAL_ENTITY = 13;
+    private static final int IDX_ACCOUNT_NO = 0;
+    private static final int IDX_ACCOUNT_NAME = 1;
+    private static final int IDX_ACCOUNT_BRANCH_CODE = 2;
+    private static final int IDX_ACCOUNT_BRANCH_NAME = 3;
+    private static final int IDX_ACCOUNT_DOMICILE = 4;
+    private static final int IDX_ACCOUNT_GFC_ID = 5;
+    private static final int IDX_ACCOUNT_LEGAL_ENTITY = 6;
 
     private final AmtAccountRequestRepository amtAccountRequestRepository;
 
