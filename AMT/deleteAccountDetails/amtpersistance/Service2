@@ -1,0 +1,62 @@
+import feign.FeignException;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+
+@Slf4j
+@Service
+public class CDV3ServiceImpl implements CDV3Service {
+
+    private final AmtPersistenceFeignClient amtPersistenceFeignClient;
+
+    public CDV3ServiceImpl(AmtPersistenceFeignClient amtPersistenceFeignClient) {
+        this.amtPersistenceFeignClient = amtPersistenceFeignClient;
+    }
+
+    @Override
+    public ResponseEntity<DeleteAccountDetailsResponse> deleteAccountDetails(DeleteAccountDetailsRequest request) {
+        log.info("CDV3ServiceImpl - deleteAccountDetails request: {}", request);
+
+        try {
+            return amtPersistenceFeignClient.deleteAccountDetails(request);
+
+        } catch (FeignException e) {
+            log.error("Downstream error from service B. status: {}, body: {}", e.status(), e.contentUTF8(), e);
+
+            HttpStatus status = HttpStatus.resolve(e.status());
+            if (status == null) {
+                status = HttpStatus.INTERNAL_SERVER_ERROR;
+            }
+
+            DeleteAccountDetailsResponse response = new DeleteAccountDetailsResponse();
+            response.setStatus("failure");
+
+            if (HttpStatus.NOT_FOUND.equals(status)) {
+                response.setMessage(CommonConstant.DeleteAccountActionsResponseMessage.NOT_RECORD_FOUND);
+                response.setError(null);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+
+            if (HttpStatus.BAD_REQUEST.equals(status)) {
+                response.setMessage(CommonConstant.DeleteAccountActionsResponseMessage.INVALID_REQUEST);
+                response.setError(null);
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            response.setMessage(CommonConstant.DeleteAccountActionsResponseMessage.INTERNAL_ERROR);
+            response.setError(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+
+        } catch (Exception e) {
+            log.error("Unexpected error while deleting account details for request: {}", request, e);
+
+            DeleteAccountDetailsResponse response = new DeleteAccountDetailsResponse();
+            response.setStatus("failure");
+            response.setMessage(CommonConstant.DeleteAccountActionsResponseMessage.INTERNAL_ERROR);
+            response.setError(e.getMessage());
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+    }
+}
