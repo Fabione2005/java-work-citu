@@ -1,0 +1,60 @@
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+
+@Override
+public ResponseEntity<DeleteAccountDetailsResponse> deleteAccountDetails(DeleteAccountDetailsRequest request) {
+    log.info("CDV3ServiceImpl - deleteAccountDetails request: {}", request);
+
+    try {
+        return amtPersistenceFeignClient.deleteAccountDetails(request);
+
+    } catch (Exception e) {
+        log.error("Error calling service B for request: {}", request, e);
+
+        HttpStatus downstreamStatus = extractDownstreamStatus(e);
+
+        DeleteAccountDetailsResponse response = new DeleteAccountDetailsResponse();
+        response.setStatus("failure");
+        response.setError(null);
+
+        if (HttpStatus.NOT_FOUND.equals(downstreamStatus)) {
+            response.setMessage(CommonConstant.DeleteAccountActionsResponseMessage.NOT_RECORD_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+
+        if (HttpStatus.BAD_REQUEST.equals(downstreamStatus)) {
+            response.setMessage(CommonConstant.DeleteAccountActionsResponseMessage.INVALID_REQUEST);
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        response.setMessage(CommonConstant.DeleteAccountActionsResponseMessage.INTERNAL_ERROR);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+}
+
+
+
+private HttpStatus extractDownstreamStatus(Exception e) {
+    try {
+        String message = e.getMessage();
+        if (message == null) {
+            return HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+
+        Pattern pattern = Pattern.compile("\\[(\\d{3})\\]\\s+during");
+        Matcher matcher = pattern.matcher(message);
+
+        if (matcher.find()) {
+            int statusCode = Integer.parseInt(matcher.group(1));
+            return HttpStatus.valueOf(statusCode);
+        }
+    } catch (Exception ex) {
+        log.warn("Could not extract downstream status from exception message", ex);
+    }
+
+    return HttpStatus.INTERNAL_SERVER_ERROR;
+}
