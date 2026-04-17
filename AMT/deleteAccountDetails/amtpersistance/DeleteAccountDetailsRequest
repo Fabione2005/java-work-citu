@@ -1,0 +1,39 @@
+package com.example.dto.request;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public class DeleteAccountDetailsRequest {
+
+    @JsonProperty("parentrequest_id")
+    private String parentRequestId;
+
+    @JsonProperty("client_definition_id")
+    private Long clientDefinitionId;
+
+    @JsonProperty("accountno")
+    private String accountNo;
+
+    public String getParentRequestId() {
+        return parentRequestId;
+    }
+
+    public void setParentRequestId(String parentRequestId) {
+        this.parentRequestId = parentRequestId;
+    }
+
+    public Long getClientDefinitionId() {
+        return clientDefinitionId;
+    }
+
+    public void setClientDefinitionId(Long clientDefinitionId) {
+        this.clientDefinitionId = clientDefinitionId;
+    }
+
+    public String getAccountNo() {
+        return accountNo;
+    }
+
+    public void setAccountNo(String accountNo) {
+        this.accountNo = accountNo;
+    }
+}
