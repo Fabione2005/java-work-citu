@@ -1,0 +1,26 @@
+package com.example.repository;
+
+import com.example.entity.AmtClientDefinitionAction;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
+
+public interface AmtClientDefinitionActionRepository extends JpaRepository<AmtClientDefinitionAction, Long> {
+
+    @Modifying
+    @Transactional
+    @Query(
+        value = "DELETE FROM {h-schema}AMT_CLIENT_DEFINITION_ACTION " +
+                "WHERE PARENT_REQUEST_ID = :parentRequestId " +
+                "  AND ACCOUNT_NUMBER = :accountNumber " +
+                "  AND CLIENT_DEFINITION_ID = :clientDefinitionId",
+        nativeQuery = true
+    )
+    int deleteAccountDetails(
+            @Param("parentRequestId") String parentRequestId,
+            @Param("accountNumber") String accountNumber,
+            @Param("clientDefinitionId") Long clientDefinitionId
+    );
+}
