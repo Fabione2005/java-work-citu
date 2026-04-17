@@ -1,0 +1,40 @@
+package com.example.controller;
+
+import com.example.dto.request.DeleteAccountDetailsRequest;
+import com.example.dto.response.DeleteAccountDetailsResponse;
+import com.example.service.AmtClientDefinitionActionService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/account")
+public class AmtClientDefinitionActionController {
+
+    private final AmtClientDefinitionActionService service;
+
+    public AmtClientDefinitionActionController(AmtClientDefinitionActionService service) {
+        this.service = service;
+    }
+
+    @PostMapping("/deleteaccountdetails")
+    public ResponseEntity<DeleteAccountDetailsResponse> deleteAccountDetails(
+            @RequestBody DeleteAccountDetailsRequest request) {
+
+        DeleteAccountDetailsResponse response = service.deleteAccountDetails(request);
+
+        if ("success".equalsIgnoreCase(response.getStatus())) {
+            return ResponseEntity.ok(response);
+        }
+
+        if ("No record found to delete".equalsIgnoreCase(response.getMessage())) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        }
+
+        if ("Invalid request".equalsIgnoreCase(response.getMessage())) {
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
+}
