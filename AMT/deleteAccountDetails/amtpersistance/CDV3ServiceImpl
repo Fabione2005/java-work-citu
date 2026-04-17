@@ -1,0 +1,61 @@
+import com.fasterxml.jackson.databind.ObjectMapper;
+import feign.FeignException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class CDV3ServiceImpl implements CDV3Service {
+
+    private final AmtPersistenceFeignClient amtPersistenceFeignClient;
+    private final ObjectMapper objectMapper;
+
+    @Override
+    public ResponseEntity<DeleteAccountDetailsResponse> deleteAccountDetails(DeleteAccountDetailsRequest request) {
+        log.info("CDV3ServiceImpl - deleteAccountDetails request: {}", request);
+
+        try {
+            return amtPersistenceFeignClient.deleteAccountDetails(request);
+
+        } catch (FeignException e) {
+            log.error("Error returned from service B for request: {}, status: {}, body: {}",
+                    request, e.status(), e.contentUTF8(), e);
+
+            DeleteAccountDetailsResponse errorResponse = null;
+
+            try {
+                String responseBody = e.contentUTF8();
+                if (responseBody != null && !responseBody.isBlank()) {
+                    errorResponse = objectMapper.readValue(responseBody, DeleteAccountDetailsResponse.class);
+                }
+            } catch (Exception parseException) {
+                log.error("Error parsing error body from service B", parseException);
+            }
+
+            if (errorResponse == null) {
+                errorResponse = new DeleteAccountDetailsResponse();
+                errorResponse.setStatus("failure");
+                errorResponse.setMessage("Error deleting account");
+                errorResponse.setError(e.getMessage());
+            }
+
+            int statusCode = e.status() > 0 ? e.status() : HttpStatus.INTERNAL_SERVER_ERROR.value();
+
+            return ResponseEntity.status(statusCode).body(errorResponse);
+
+        } catch (Exception e) {
+            log.error("Unexpected error occurred while deleting account details for request: {}", request, e);
+
+            DeleteAccountDetailsResponse errorResponse = new DeleteAccountDetailsResponse();
+            errorResponse.setStatus("failure");
+            errorResponse.setMessage("Unexpected error deleting account");
+            errorResponse.setError(e.getMessage());
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+}
