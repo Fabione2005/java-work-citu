@@ -1,0 +1,82 @@
+package com.example.service.impl;
+
+import com.example.dto.request.DeleteAccountDetailsRequest;
+import com.example.dto.response.DeleteAccountDetailsResponse;
+import com.example.repository.AmtClientDefinitionActionRepository;
+import com.example.service.AmtClientDefinitionActionService;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
+@Service
+public class AmtClientDefinitionActionServiceImpl implements AmtClientDefinitionActionService {
+
+    private final AmtClientDefinitionActionRepository repository;
+
+    public AmtClientDefinitionActionServiceImpl(AmtClientDefinitionActionRepository repository) {
+        this.repository = repository;
+    }
+
+    @Override
+    public DeleteAccountDetailsResponse deleteAccountDetails(DeleteAccountDetailsRequest request) {
+        try {
+            if (request == null) {
+                return new DeleteAccountDetailsResponse(
+                        "failure",
+                        "Invalid request",
+                        "Request body is null"
+                );
+            }
+
+            if (!StringUtils.hasText(request.getParentRequestId())) {
+                return new DeleteAccountDetailsResponse(
+                        "failure",
+                        "Invalid request",
+                        "parentrequest_id is required"
+                );
+            }
+
+            if (!StringUtils.hasText(request.getAccountNo())) {
+                return new DeleteAccountDetailsResponse(
+                        "failure",
+                        "Invalid request",
+                        "accountno is required"
+                );
+            }
+
+            if (request.getClientDefinitionId() == null) {
+                return new DeleteAccountDetailsResponse(
+                        "failure",
+                        "Invalid request",
+                        "client_definition_id is required"
+                );
+            }
+
+            int rowsDeleted = repository.deleteAccountDetails(
+                    request.getParentRequestId(),
+                    request.getAccountNo(),
+                    request.getClientDefinitionId()
+            );
+
+            if (rowsDeleted > 0) {
+                return new DeleteAccountDetailsResponse(
+                        "success",
+                        "Account deleted successfully",
+                        null
+                );
+            }
+
+            return new DeleteAccountDetailsResponse(
+                    "failure",
+                    "No record found to delete",
+                    null
+            );
+
+        } catch (Exception e) {
+            return new DeleteAccountDetailsResponse(
+                    "failure",
+                    "Error deleting account",
+                    e.getMessage()
+            );
+        }
+    }
+}
