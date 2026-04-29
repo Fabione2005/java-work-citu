@@ -1,0 +1,113 @@
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+@ExtendWith(MockitoExtension.class)
+class CdV3ServiceImplTest {
+
+    @Mock
+    private AmtPersistenceFeignClient amtPersistenceFeignClient;
+
+    @InjectMocks
+    private CdV3ServiceImpl cdV3Service;
+
+    private DeleteAccountDetailsRequest request;
+
+    @BeforeEach
+    void setUp() {
+        request = new DeleteAccountDetailsRequest();
+
+        // Setea aquí los campos obligatorios si tu request los necesita
+        // request.setParentRequestId(...);
+        // request.setAccountNumber(...);
+        // request.setClientDefinitionId(...);
+    }
+
+    @Test
+    void deleteAccountDetails_whenDownstreamReturns404_shouldReturnNotFoundResponse() {
+        RuntimeException exception = new RuntimeException("[404] during DELETE request");
+
+        when(amtPersistenceFeignClient.deleteAccountDetails(request))
+                .thenThrow(exception);
+
+        ResponseEntity<DeleteAccountDetailsResponse> result =
+                cdV3Service.deleteAccountDetails(request);
+
+        assertEquals(HttpStatus.NOT_FOUND, result.getStatusCode());
+        assertNotNull(result.getBody());
+        assertEquals("failure", result.getBody().getStatus());
+        assertNull(result.getBody().getError());
+        assertEquals(
+                CommonConstant.DeleteAccountActionsResponseMessage.NOT_RECORD_FOUND,
+                result.getBody().getMessage()
+        );
+    }
+
+    @Test
+    void deleteAccountDetails_whenDownstreamReturns400_shouldReturnBadRequestResponse() {
+        RuntimeException exception = new RuntimeException("[400] during DELETE request");
+
+        when(amtPersistenceFeignClient.deleteAccountDetails(request))
+                .thenThrow(exception);
+
+        ResponseEntity<DeleteAccountDetailsResponse> result =
+                cdV3Service.deleteAccountDetails(request);
+
+        assertEquals(HttpStatus.BAD_REQUEST, result.getStatusCode());
+        assertNotNull(result.getBody());
+        assertEquals("failure", result.getBody().getStatus());
+        assertNull(result.getBody().getError());
+        assertEquals(
+                CommonConstant.DeleteAccountActionsResponseMessage.INVALID_REQUEST,
+                result.getBody().getMessage()
+        );
+    }
+
+    @Test
+    void deleteAccountDetails_whenDownstreamStatusCannotBeExtracted_shouldReturnInternalServerErrorResponse() {
+        RuntimeException exception = new RuntimeException("Unexpected downstream error without status");
+
+        when(amtPersistenceFeignClient.deleteAccountDetails(request))
+                .thenThrow(exception);
+
+        ResponseEntity<DeleteAccountDetailsResponse> result =
+                cdV3Service.deleteAccountDetails(request);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, result.getStatusCode());
+        assertNotNull(result.getBody());
+        assertEquals("failure", result.getBody().getStatus());
+        assertNull(result.getBody().getError());
+        assertEquals(
+                CommonConstant.DeleteAccountActionsResponseMessage.INTERNAL_ERROR,
+                result.getBody().getMessage()
+        );
+    }
+
+    @Test
+    void deleteAccountDetails_whenExceptionMessageIsNull_shouldReturnInternalServerErrorResponse() {
+        RuntimeException exception = new RuntimeException((String) null);
+
+        when(amtPersistenceFeignClient.deleteAccountDetails(request))
+                .thenThrow(exception);
+
+        ResponseEntity<DeleteAccountDetailsResponse> result =
+                cdV3Service.deleteAccountDetails(request);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, result.getStatusCode());
+        assertNotNull(result.getBody());
+        assertEquals("failure", result.getBody().getStatus());
+        assertNull(result.getBody().getError());
+        assertEquals(
+                CommonConstant.DeleteAccountActionsResponseMessage.INTERNAL_ERROR,
+                result.getBody().getMessage()
+        );
+    }
+}
